@@ -1,4 +1,4 @@
-const envJson = require("./env.json");
+import envJson from "./env.json";
 const env = process.env.NODE_ENV || "dev";
 
-module.exports = envJson[env];
+export default envJson[env];

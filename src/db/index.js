@@ -1,17 +1,26 @@
-const mongoose = require("mongoose");
-const config = require("../config");
+import mongoose from "mongoose";
+import config from "config";
 
-console.log("config", config);
+let cachedDb = null;
 
-module.exports.connect = () => {
-    return mongoose
-        .connect(config.mongoUrl, { useNewUrlParser: true })
-        .then((res) => {
-            console.log("Connect!");
-            console.log("res: ", res);
-        })
-        .catch((err) => {
-            console.log("Connect Error!");
-            console.log("err:", err);
-        });
+export default {
+    connect: () => {
+        console.log("=> Connect to Database.");
+
+        if (cachedDb) {
+            console.log("=> Useing cached database instance");
+            return Promise.resolve(cachedDb);
+        }
+
+        return mongoose
+            .connect(config.mongoUrl, { useNewUrlParser: true })
+            .then((res) => {
+                console.log("=> Connect!");
+                cachedDb = res;
+            })
+            .catch((err) => {
+                console.log("=> Connect Error!");
+                console.log("err:", err);
+            });
+    },
 };
