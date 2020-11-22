@@ -1,5 +1,8 @@
 import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import config from "config";
+import Joi from "joi";
 
 const saltRounds = 10;
 
@@ -27,16 +30,27 @@ AuthScema.methods.serialize = function () {
     return data;
 };
 
-AuthScema.statics.findByIdentity = async function ({ email, phoneNumber }) {
-    const query = {};
+AuthScema.methods.generateToken = function () {
+    const token = jwt.sign(
+        {
+            _id: this.email || this.phoneNumber,
+        },
+        config.JWT_SECRET,
+        { expiresIn: "7d" }
+    );
 
-    if (email) {
-        query.email = email;
-    } else {
-        query.phoneNumber = phoneNumber;
-    }
+    return token;
+};
 
-    return await this.findOne(query).lean();
+AuthScema.statics.findByIdentity = async function (id) {
+    const emailSchema = Joi.string().email();
+    const checkEmail = emailSchema.validate(id);
+
+    const query = {
+        ...(checkEmail.error ? { phoneNumber: id } : { email: id }),
+    };
+
+    return await this.findOne(query);
 };
 
 const Auth = mongoose.model("Auth", AuthScema);
