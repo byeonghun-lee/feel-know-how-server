@@ -13,7 +13,10 @@ export default {
         }
 
         return mongoose
-            .connect(config.mongoUrl, { useNewUrlParser: true })
+            .connect(config.MONGO_URL, {
+                useNewUrlParser: true,
+                useUnifiedTopology: true,
+            })
             .then((res) => {
                 console.log("=> Connect!");
                 cachedDb = res;
