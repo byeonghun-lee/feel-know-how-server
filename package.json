@@ -5,11 +5,13 @@
     "main": "server.js",
     "license": "MIT",
     "scripts": {
-        "dev": "NODE_PATH=src APP_ENV=local nodemon --exec babel-node --presets=@babel/preset-env src/server.js"
+        "dev": "NODE_PATH=src APP_ENV=local nodemon --exec babel-node --presets=@babel/preset-env src/server.js",
+        "test": "mocha"
     },
     "dependencies": {
         "bcrypt": "^5.0.0",
         "joi": "^17.3.0",
+        "jsonwebtoken": "^8.5.1",
         "koa": "^2.13.0",
         "koa-bodyparser": "^4.3.0",
         "koa-router": "^9.4.0",
@@ -21,6 +23,8 @@
         "@babel/node": "^7.12.1",
         "@babel/preset-env": "^7.12.1",
         "eslint": "^7.12.1",
-        "prettier": "2.1.2"
+        "mocha": "^8.2.0",
+        "prettier": "2.1.2",
+        "request": "^2.88.2"
     }
 }

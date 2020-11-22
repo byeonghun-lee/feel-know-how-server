@@ -2,10 +2,12 @@ import serverless from "serverless-http";
 import Koa from "koa";
 import bodyParser from "koa-bodyparser"
 import api from "api";
+import jwtMiddleware from "./lib/jwtMiddleware";
 
 const app = new Koa();
 
 app.use(bodyParser());
+app.use(jwtMiddleware);
 app.use(api.routes());
 
 if(process.env.APP_ENV === "local") {
