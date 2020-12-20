@@ -1,5 +1,5 @@
 import Joi from "joi";
-import Auth from "./auth";
+import Auth from "api/auth/auth";
 import db from "db";
 
 /*
@@ -135,7 +135,7 @@ export const check = async (ctx) => {
 POST /auth/logout
 */
 
-export const logout = async ctx => {
+export const logout = async (ctx) => {
     ctx.cookies.set("access_token");
     ctx.status = 204;
 };

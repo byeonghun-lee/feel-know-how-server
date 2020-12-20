@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import config from "config";
 import db from "db";
-import Auth from "../api/auth/auth";
+import Auth from "api/auth/auth";
 
 const jwtMiddleware = async (ctx, next) => {
     const token = ctx.cookies.get("access_token");

@@ -1,15 +1,23 @@
 service: feel-know-how-server
-frameworkVersion: '2'
+frameworkVersion: "2"
 provider:
-  name: aws
-  runtime: nodejs12.x
-  stage: dev
-  region: ap-northeast-2
+    name: aws
+    runtime: nodejs12.x
+    stage: dev
+    region: ap-northeast-2
+plugins:
+    - serverless-webpack
+    - serverless-offline
 
+custom:
+    webpack:
+        webpackConfig: "webpack.config.js"
+        includeModules: true
+        packager: "yarn"
 
 functions:
-  app:
-    handler: src/server.handler
-    events:
-      - http: ANY /
-      - http: "ANY {proxy+}"
+    app:
+        handler: src/server.handler
+        events:
+            - http: ANY /
+            - http: "ANY {proxy+}"
