@@ -13,6 +13,7 @@ const jwtMiddleware = async (ctx, next) => {
         console.log("decoded",decoded);
         ctx.state.auth = {
             _id: decoded._id,
+            nickname: decoded.nickname
         };
 
         const now = Math.floor(Date.now() / 1000);
