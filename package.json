@@ -2,15 +2,16 @@
     "name": "feel-know-how-server",
     "version": "1.0.0",
     "description": "feel know-how server code",
-    "main": "server.js",
+    "main": "app.js",
     "license": "MIT",
     "scripts": {
-        "dev": "NODE_PATH=src APP_ENV=local nodemon --exec babel-node --presets=@babel/preset-env src/server.js",
+        "dev": "NODE_PATH=src APP_ENV=local nodemon --exec babel-node --presets=@babel/preset-env src/app.js",
         "start-local": "IS_OFFLINE=true sls offline",
         "test": "mocha"
     },
     "dependencies": {
-        "bcrypt": "^5.0.0",
+        "@koa/cors": "^3.1.0",
+        "bcryptjs": "^2.4.3",
         "joi": "^17.3.0",
         "jsonwebtoken": "^8.5.1",
         "koa": "^2.13.0",

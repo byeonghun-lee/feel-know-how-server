@@ -3,11 +3,11 @@ frameworkVersion: "2"
 provider:
     name: aws
     runtime: nodejs12.x
-    stage: dev
+    stage: prod
     region: ap-northeast-2
 plugins:
     - serverless-webpack
-    - serverless-offline
+    # - serverless-offline
 
 custom:
     webpack:
@@ -17,7 +17,18 @@ custom:
 
 functions:
     app:
-        handler: src/server.handler
+        handler: src/app.handler
         events:
-            - http: ANY /
-            - http: "ANY {proxy+}"
+            - http:
+                path: /
+                method: ANY
+                cors: true
+            - http:
+                path: "{proxy+}"
+                method: ANY
+                cors: true
+            
+package:
+    individually: true
+    include:
+        - node_modules/**
