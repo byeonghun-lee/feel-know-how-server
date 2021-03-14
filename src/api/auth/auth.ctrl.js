@@ -1,6 +1,7 @@
 import Joi from "joi";
-import Auth from "api/auth/auth";
 import db from "db";
+import Auth from "api/auth/auth";
+import * as AuthService from "api/auth/auth.service";
 
 /*
 POST /auth/register
@@ -45,6 +46,7 @@ export const register = async (ctx) => {
         const auth = new Auth({ email, phoneNumber, password });
         await auth.setPassword(password);
         await auth.save();
+        await AuthService.JobOfInitRegister(auth);
 
         ctx.body = auth.serialize();
 
