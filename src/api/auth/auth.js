@@ -9,8 +9,9 @@ const saltRounds = 10;
 const AuthSchema = new Schema({
     email: { type: String },
     phoneNumber: { type: String },
-    nickname: {type: String},
+    nickname: { type: String },
     hasdedPassword: { type: String },
+    createdAt: { type: Date, default: new Date() },
 });
 
 AuthSchema.methods.setPassword = async function (password) {
@@ -34,8 +35,9 @@ AuthSchema.methods.serialize = function () {
 AuthSchema.methods.generateToken = function () {
     const token = jwt.sign(
         {
-            _id: this.email || this.phoneNumber,
-            nickname: this.nickname
+            userId: this._id,
+            id: this.email || this.phoneNumber,
+            nickname: this.nickname,
         },
         config.JWT_SECRET,
         { expiresIn: "7d" }

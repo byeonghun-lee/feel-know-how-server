@@ -12,7 +12,8 @@ const jwtMiddleware = async (ctx, next) => {
         const decoded = jwt.verify(token, config.JWT_SECRET);
         console.log("decoded",decoded);
         ctx.state.auth = {
-            _id: decoded._id,
+            userId: decoded.userId,
+            id: decoded.id,
             nickname: decoded.nickname
         };
 
@@ -29,7 +30,6 @@ const jwtMiddleware = async (ctx, next) => {
                 httpOnly: true
             })
         }
-        console.log("test");
         return next();
     } catch (e) {
         return next();
