@@ -45,3 +45,29 @@ export const createDrawer = async (ctx) => {
         ctx.throw(500, error);
     }
 };
+
+/*
+GET /drawers
+*/
+
+export const getDrawers = async (ctx) => {
+    ctx.callbackWaitsForEmptyEventLoop = false;
+    await db.connect();
+
+    try {
+        const DrawerList = await Drawer.find({
+            userId: ctx.state.auth.userId,
+        })
+            .select(["_id", "name", "allPublic"])
+            .sort({ createdAt: -1 })
+            .lean();
+
+        ctx.status = 200;
+        ctx.body = DrawerList;
+
+        return;
+    } catch (error) {
+        console.log("Get Drawers error");
+        ctx.throw(500, error);
+    }
+};
