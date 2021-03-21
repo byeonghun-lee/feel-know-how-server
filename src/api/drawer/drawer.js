@@ -12,10 +12,23 @@ const DrawerSchema = new Schema({
     dateToBeDeleted: { type: Date },
     createdAt: { type: Date, default: new Date() },
     contributors: [{ type: mongoose.Types.ObjectId }],
+    tags: [{ type: String }],
+    forkCount: { type: Number },
+    likeCount: { type: Number },
+    history: [
+        {
+            userId: { type: String },
+            message: { type: String },
+            action: {
+                type: String,
+                enum: ["read", "add", "update", "remove", "addContributors"],
+            },
+        },
+    ],
 });
 
-DrawerSchema.pre("save", function(next) {
-    const _name = this.name.replace(/\s/g, '');
+DrawerSchema.pre("save", function (next) {
+    const _name = this.name.replace(/\s/g, "");
     this.name = _name.charAt(0).toUpperCase() + _name.slice(1, _name.length);
 
     next();

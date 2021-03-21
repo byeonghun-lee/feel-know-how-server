@@ -3,11 +3,12 @@ import Drawer from "api/drawer/drawer";
 import db from "db";
 
 /*
-POST /drawers
+POST /drawer
 {
     name: "개발자 관련 링크",
     desc: "개발자 취업 관련 링크를 모았습니다.",
-    allPublic: false
+    allPublic: false,
+    tags: ["developer", "development"]
 }
 */
 
@@ -18,6 +19,7 @@ export const createDrawer = async (ctx) => {
     const schema = Joi.object({
         name: Joi.string().required(),
         desc: Joi.string().max(140),
+        tags: Joi.array().items(Joi.string()),
         allPublic: Joi.boolean(),
     });
     const result = schema.validate(ctx.request.body);
@@ -28,7 +30,7 @@ export const createDrawer = async (ctx) => {
         return;
     }
 
-    const { name, desc, allPublic } = ctx.request.body;
+    const { name, desc, allPublic, tags } = ctx.request.body;
 
     try {
         await Drawer.create({
@@ -36,6 +38,7 @@ export const createDrawer = async (ctx) => {
             desc,
             ...(allPublic !== undefined && { allPublic }),
             userId: ctx.state.auth.userId,
+            ...(tags && tags.length > 0 && { tags }),
         });
 
         ctx.status = 201;
@@ -47,7 +50,7 @@ export const createDrawer = async (ctx) => {
 };
 
 /*
-GET /drawers
+GET /drawer
 */
 
 export const getDrawers = async (ctx) => {
