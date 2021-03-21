@@ -24,6 +24,7 @@ export const register = async (ctx) => {
         email: Joi.string(),
         phoneNumber: Joi.string(),
         password: Joi.string().required(),
+        nickname: Joi.string().max(10).required()
     }).or("email", "phoneNumber");
     const result = schema.validate(ctx.request.body);
 
@@ -33,7 +34,7 @@ export const register = async (ctx) => {
         return;
     }
 
-    const { email, phoneNumber, password } = ctx.request.body;
+    const { email, phoneNumber, password, nickname } = ctx.request.body;
 
     try {
         const exists = await Auth.findByIdentity(email || phoneNumber);
@@ -43,7 +44,7 @@ export const register = async (ctx) => {
             return;
         }
 
-        const auth = new Auth({ email, phoneNumber, password });
+        const auth = new Auth({ email, phoneNumber, password, nickname });
         await auth.setPassword(password);
         await auth.save();
         await AuthService.JobOfInitRegister(auth);
