@@ -1,5 +1,7 @@
 import Joi from "joi";
 import Card from "api/card/card";
+import Drawer from "api/drawer/drawer";
+import Auth from "api/auth/auth";
 import db from "db";
 import axios from "axios";
 
@@ -54,17 +56,19 @@ export const createCard = async (ctx) => {
 };
 
 /*
-GET /cards?nickname=hun&drawerName=asldjal
+GET /cards?nickname=hun&drawername=asldjal
 */
 
 export const getCards = async (ctx) => {
-    const { nickname, drawerName } = ctx.request.query;
+    const { nickname, drawername } = ctx.request.query;
+    // joi 추가
 
     try {
         const user = await Auth.findOne({ nickname }).select("_id").lean();
+
         const drawer = await Drawer.findOne({
             userId: user._id,
-            name: drawerName,
+            name: drawername,
         })
             .select([
                 "_id",
@@ -77,6 +81,11 @@ export const getCards = async (ctx) => {
                 "likeList",
             ])
             .lean();
+
+        if (!drawer) {
+            ctx.status = 404;
+            return;
+        }
 
         if (!drawer.allPublic && ctx.state.auth.userId !== drawer.userId) {
             ctx.status = 403;
