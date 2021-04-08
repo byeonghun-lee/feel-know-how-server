@@ -3,7 +3,7 @@ import Drawer from "api/drawer/drawer";
 import db from "db";
 
 /*
-POST /drawer
+POST /drawers
 {
     name: "개발자 관련 링크",
     desc: "개발자 취업 관련 링크를 모았습니다.",
@@ -50,7 +50,7 @@ export const createDrawer = async (ctx) => {
 };
 
 /*
-GET /drawer
+GET /drawers
 */
 
 export const getDrawers = async (ctx) => {
