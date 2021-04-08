@@ -5,6 +5,6 @@ import checkedLogin from "lib/checkedLogin";
 const card = new Router();
 
 card.get("/", checkedLogin, cardCtrl.getCards);
-card.post("/", cardCtrl.createCard);
+card.post("/", checkedLogin, cardCtrl.createCard);
 
 export default card;

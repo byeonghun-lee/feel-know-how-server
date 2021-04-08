@@ -3,7 +3,6 @@ import Card from "api/card/card";
 import Drawer from "api/drawer/drawer";
 import Auth from "api/auth/auth";
 import db from "db";
-import axios from "axios";
 
 /*
 POST /cards
@@ -20,7 +19,7 @@ export const createCard = async (ctx) => {
     await db.connect();
 
     const schema = Joi.object({
-        title: Joi.string().required(),
+        title: Joi.string(),
         desc: Joi.string().max(140),
         url: Joi.string().required(),
         drawerId: Joi.string(),
@@ -60,8 +59,23 @@ GET /cards?nickname=hun&drawername=asldjal
 */
 
 export const getCards = async (ctx) => {
+    ctx.callbackWaitsForEmptyEventLoop = false;
+    await db.connect();
+
+    const schema = Joi.object({
+        nickname: Joi.string().required(),
+        drawername: Joi.string().required(),
+    });
+
+    const result = schema.validate(ctx.request.query);
+
+    if (result.error) {
+        ctx.status = 400;
+        ctx.body = result.error;
+        return;
+    }
+
     const { nickname, drawername } = ctx.request.query;
-    // joi 추가
 
     try {
         const user = await Auth.findOne({ nickname }).select("_id").lean();
@@ -87,7 +101,10 @@ export const getCards = async (ctx) => {
             return;
         }
 
-        if (!drawer.allPublic && ctx.state.auth.userId !== drawer.userId) {
+        if (
+            !drawer.allPublic &&
+            ctx.state.auth.userId.toString() !== drawer.userId.toString()
+        ) {
             ctx.status = 403;
             return;
         }
@@ -100,6 +117,7 @@ export const getCards = async (ctx) => {
         ctx.body = {
             drawerName: drawer.name,
             drawerDesc: drawer.desc,
+            tagList: drawer.tags,
             cardList,
         };
     } catch (error) {
