@@ -7,12 +7,14 @@ import Joi from "joi";
 const saltRounds = 10;
 
 const AuthSchema = new Schema({
-    email: { type: String },
+    email: { type: String, unique: true },
     phoneNumber: { type: String },
-    nickname: { type: String },
+    nickname: { type: String, unique: true },
     hasdedPassword: { type: String },
     createdAt: { type: Date, default: new Date() },
+    expireAt: { type: Date },
 });
+AuthSchema.index({ expireAt: 1 }, { expireAfterSeconds: 0 });
 
 AuthSchema.methods.setPassword = async function (password) {
     const hash = await bcrypt.hash(password, saltRounds);

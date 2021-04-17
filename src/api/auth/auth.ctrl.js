@@ -2,7 +2,7 @@ import Joi from "joi";
 import db from "db";
 import Auth from "api/auth/auth";
 import * as AuthService from "api/auth/auth.service";
-import { createMailAuth } from "api/mailAuth/mailAuth.service";
+import { createMailAuth, checkMailAuth } from "api/mailAuth/mailAuth.service";
 
 /*
 POST /auth/register
@@ -151,10 +151,71 @@ POST /auth/verify-email
 export const sendVerifyEmailCode = async (ctx) => {
     const { email } = ctx.request.body;
     console.log("Email:", email);
+
+    // todo
+    // joi 추가
     if (!email) {
         ctx.status = 400;
         return;
     }
 
-    await createMailAuth({ ctx, email });
+    try {
+        await AuthService.checkExistUser({ ctx, email });
+        await createMailAuth({ ctx, email });
+        ctx.status = 200;
+        ctx.body = "ok";
+    } catch (error) {
+        console.log("sendVerifyEmailCode Error:", error);
+
+        ctx.body = error.message;
+
+        if (
+            error.message.indexOf("Exist") >= 0 ||
+            error.message.indexOf("many") >= 0
+        ) {
+            ctx.staus = 200;
+            return;
+        }
+
+        ctx.statu = 500;
+        return;
+    }
+};
+
+/*
+POST /auth/verification-code
+*/
+
+export const checkVerificationCode = async (ctx) => {
+    const schema = Joi.object({
+        email: Joi.string().email().required(),
+        code: Joi.string().required(),
+    });
+
+    const result = schema.validate(ctx.request.body);
+
+    if (result.error) {
+        ctx.status = 400;
+        ctx.body = result.error;
+        return;
+    }
+
+    const { email, code } = ctx.request.body;
+
+    try {
+        const chekedValue = await checkMailAuth({ ctx, email, code });
+        await AuthService.preRegister({ ctx, chekedEmail: chekedValue.email });
+        ctx.status = 200;
+        ctx.body = "ok";
+        return;
+    } catch (error) {
+        console.error("checkVerificationCode error:", error);
+
+        ctx.body = error.message;
+
+        if (error.message.indexOf("found") >= 0) {
+            ctx.staus = 200;
+            return;
+        }
+    }
 };
