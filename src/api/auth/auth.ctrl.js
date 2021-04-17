@@ -2,6 +2,7 @@ import Joi from "joi";
 import db from "db";
 import Auth from "api/auth/auth";
 import * as AuthService from "api/auth/auth.service";
+import { createMailAuth } from "api/mailAuth/mailAuth.service";
 
 /*
 POST /auth/register
@@ -24,7 +25,7 @@ export const register = async (ctx) => {
         email: Joi.string(),
         phoneNumber: Joi.string(),
         password: Joi.string().required(),
-        nickname: Joi.string().max(10).required()
+        nickname: Joi.string().max(10).required(),
     }).or("email", "phoneNumber");
     const result = schema.validate(ctx.request.body);
 
@@ -141,4 +142,19 @@ POST /auth/logout
 export const logout = async (ctx) => {
     ctx.cookies.set("access_token");
     ctx.status = 204;
+};
+
+/*
+POST /auth/verify-email
+*/
+
+export const sendVerifyEmailCode = async (ctx) => {
+    const { email } = ctx.request.body;
+    console.log("Email:", email);
+    if (!email) {
+        ctx.status = 400;
+        return;
+    }
+
+    await createMailAuth({ ctx, email });
 };

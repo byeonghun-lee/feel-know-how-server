@@ -6,7 +6,7 @@ const mailAuthSchema = new Schema({
     expireAt: { type: Date },
 });
 
-mailAuthSchema.index({ expireAt: 1, expireAfterSeconds: 0 });
+mailAuthSchema.index({ expireAt: 1 }, { expireAfterSeconds: 0 });
 
 const MailAuth = mongoose.model("MailAuth", mailAuthSchema);
 export default MailAuth;
