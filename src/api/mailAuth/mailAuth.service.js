@@ -26,7 +26,7 @@ export const createMailAuth = async ({ ctx, email }) => {
             {
                 email,
             },
-            { email, code: verifyCode, expireAt: Day().add(3, "m") },
+            { email, code: verifyCode, expireAt: Day().add(10, "m") },
             { upsert: true }
         );
 

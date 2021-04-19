@@ -25,16 +25,3 @@ export const checkExistUser = async ({ ctx, email }) => {
         return;
     }
 };
-
-export const preRegister = async ({ ctx, chekedEmail }) => {
-    ctx.callbackWaitsForEmptyEventLoop = false;
-    await db.connect();
-
-    await Auth.create({
-        email: chekedEmail,
-        nickname: `preUser${Day().format("MMDDHHmmss")}`,
-        expireAt: Day().add(10, "m"),
-    });
-
-    return;
-};

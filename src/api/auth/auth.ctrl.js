@@ -203,8 +203,7 @@ export const checkVerificationCode = async (ctx) => {
     const { email, code } = ctx.request.body;
 
     try {
-        const chekedValue = await checkMailAuth({ ctx, email, code });
-        await AuthService.preRegister({ ctx, chekedEmail: chekedValue.email });
+        await checkMailAuth({ ctx, email, code });
         ctx.status = 200;
         ctx.body = "ok";
         return;
