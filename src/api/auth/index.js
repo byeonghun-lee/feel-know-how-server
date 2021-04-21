@@ -9,5 +9,6 @@ auth.post("/logout", authCtrl.logout);
 auth.get("/check", authCtrl.check);
 auth.post("/verify-email", authCtrl.sendVerifyEmailCode);
 auth.post("/verification-code", authCtrl.checkVerificationCode);
+auth.get("/nickname", authCtrl.checkNickname);
 
 export default auth;

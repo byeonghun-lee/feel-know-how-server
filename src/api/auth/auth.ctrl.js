@@ -218,3 +218,40 @@ export const checkVerificationCode = async (ctx) => {
         }
     }
 };
+
+/*
+GET /auth/nickname
+*/
+
+export const checkNickname = async (ctx) => {
+    const schema = Joi.object({
+        value: Joi.string().required(),
+    });
+
+    const result = schema.validate(ctx.request.query);
+
+    if (result.error) {
+        ctx.status = 400;
+        ctx.body = result.error;
+        return;
+    }
+
+    ctx.callbackWaitsForEmptyEventLoop = false;
+    await db.connect();
+
+    const { value } = ctx.request.query;
+
+    try {
+        const user = await Auth.findOne({ nickname: value })
+            .select("_id")
+            .lean();
+        ctx.status = 200;
+        ctx.body = user ? "exists" : "notExists";
+        return;
+    } catch (error) {
+        console.log("Get nickname error", error);
+        ctx.body = error.message;
+        ctx.status = 500;
+        return;
+    }
+};
