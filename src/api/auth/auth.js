@@ -48,13 +48,14 @@ AuthSchema.methods.generateToken = function () {
     return token;
 };
 
-AuthSchema.statics.findByIdentity = async function (id) {
-    const emailSchema = Joi.string().email();
-    const checkEmail = emailSchema.validate(id);
-
+AuthSchema.statics.findByIdentity = async function ({ email, nickname }) {
     const query = {
-        ...(checkEmail.error ? { phoneNumber: id } : { email: id }),
+        $or: [{ email }],
     };
+
+    if (nickname) {
+        query.$or.push({ nickname });
+    }
 
     return await this.findOne(query);
 };

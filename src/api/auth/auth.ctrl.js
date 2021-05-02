@@ -8,12 +8,9 @@ import { createMailAuth, checkMailAuth } from "api/mailAuth/mailAuth.service";
 POST /auth/register
 {
     email: "hun08@feelknowhow.com",
-    passowrd: "feelknowhow"
-}
-
-or {
-    phoneNumber: "01099633421",
-    password: "feelknowhow"
+    passowrd: "feelknowhow",
+    nickname: "hun08",
+    verificationCode: "ASD1234"
 }
 */
 
@@ -22,11 +19,11 @@ export const register = async (ctx) => {
     await db.connect();
 
     const schema = Joi.object({
-        email: Joi.string(),
-        phoneNumber: Joi.string(),
+        email: Joi.string().email().required(),
         password: Joi.string().required(),
         nickname: Joi.string().max(10).required(),
-    }).or("email", "phoneNumber");
+        verificationCode: Joi.string().required(),
+    });
     const result = schema.validate(ctx.request.body);
 
     if (result.error) {
@@ -35,17 +32,23 @@ export const register = async (ctx) => {
         return;
     }
 
-    const { email, phoneNumber, password, nickname } = ctx.request.body;
+    const { email, password, nickname, verificationCode } = ctx.request.body;
 
     try {
-        const exists = await Auth.findByIdentity(email || phoneNumber);
+        const exists = await Auth.findByIdentity({ email, nickname });
 
         if (exists) {
             ctx.status = 409;
             return;
         }
 
-        const auth = new Auth({ email, phoneNumber, password, nickname });
+        await checkMailAuth({
+            ctx,
+            email,
+            code: verificationCode,
+        });
+
+        const auth = new Auth({ email, password, nickname });
         await auth.setPassword(password);
         await auth.save();
         await AuthService.JobOfInitRegister(auth);
@@ -71,11 +74,6 @@ POST /auth/login
     email: "hun08@feelknowhow.com",
     passowrd: "feelknowhow"
 }
-
-or {
-    phoneNumber: "01099633421",
-    password: "feelknowhow"
-}
 */
 
 export const login = async (ctx) => {
@@ -83,7 +81,7 @@ export const login = async (ctx) => {
     await db.connect();
 
     const schema = Joi.object({
-        id: Joi.string(),
+        email: Joi.string().email().required(),
         password: Joi.string().required(),
     });
     const result = schema.validate(ctx.request.body);
@@ -94,9 +92,9 @@ export const login = async (ctx) => {
         return;
     }
 
-    const { id, password } = ctx.request.body;
+    const { email, password } = ctx.request.body;
 
-    const auth = await Auth.findByIdentity(id);
+    const auth = await Auth.findByIdentity({ email });
     if (!auth) {
         ctx.status = 401;
         return;
