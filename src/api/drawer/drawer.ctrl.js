@@ -71,6 +71,29 @@ export const getDrawers = async (ctx) => {
         return;
     } catch (error) {
         console.log("Get Drawers error");
-        ctx.throw(500, error);
+        return ctx.throw(500, error);
+    }
+};
+
+/*
+GET /drawers/public
+*/
+
+export const getPublicDrawers = async (ctx) => {
+    ctx.callbackWaitsForEmptyEventLoop = false;
+    await db.connect();
+
+    const { skip = 0 } = ctx.request.query;
+
+    try {
+        const drawers = await Drawer.findPublicDrawers({ skip });
+
+        console.log("drawer:", drawers);
+        ctx.status = 200;
+        ctx.body = drawers;
+        return;
+    } catch (error) {
+        console.log("get public drawers error", error);
+        return ctx.throw(500, error);
     }
 };

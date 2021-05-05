@@ -3,7 +3,7 @@ import mongoose, { Schema } from "mongoose";
 const DrawerSchema = new Schema({
     name: { type: String, required: true, maxlength: 15 },
     desc: { type: String, maxLength: 141 },
-    userId: { type: mongoose.Types.ObjectId, required: true },
+    userId: { type: mongoose.Types.ObjectId, required: true, ref: "Auth" },
     allPublic: { type: Boolean, default: false },
     originDrawerId: { type: mongoose.Types.ObjectId },
     hasOrigin: { type: Boolean, default: false },
@@ -25,7 +25,9 @@ const DrawerSchema = new Schema({
             },
         },
     ],
-    views: [
+    totalViews: { type: Number, default: 0 },
+    halfMonthViews: { type: Number, default: 0 },
+    viewsHistory: [
         {
             yearMonth: { type: String }, // 202101
             firstHalfMonth: { type: Number, default: 0 },
@@ -47,19 +49,26 @@ DrawerSchema.statics.findPublicDrawers = async function ({ skip }) {
     };
 
     // todo
-    // 날짜별로 sort하고 싶은데...
-    // yearMonth를 키 값으로 해야하나?
+    // 어느정도 view가 쌓이면 totalViews에서 halfMonthViews로 변경
 
     const result = { totalCount: 0, list: [] };
     result.totalCount = await this.countDocuments(query);
     const list = await this.find()
-        .select(["name", "desc", "forkList", "likeList"])
+        .select(["_id", "name", "desc", "forkList", "likeList", "userId"])
+        .populate({
+            path: "userId",
+            selct: "nickname",
+        })
         .limit(30)
         .skip(skip)
+        .sort({ totalViews: -1, createdAt: -1 })
         .lean();
+
     result.list = list.map((drawer) => ({
+        id: drawer._id,
         name: drawer.name,
         desc: drawer.desc,
+        userNickname: drawer.userId.nickname,
         forkCounts: drawer.forkList ? drawer.forkList.length : 0,
         likeCounts: drawer.likeList ? drawer.likeList.length : 0,
     }));
