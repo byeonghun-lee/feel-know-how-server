@@ -86,7 +86,7 @@ export const getPublicDrawers = async (ctx) => {
     const { skip = 0 } = ctx.request.query;
 
     try {
-        const drawers = await Drawer.findPublicDrawers({ skip });
+        const drawers = await Drawer.findPublicDrawers({ skip: Number(skip) });
 
         console.log("drawer:", drawers);
         ctx.status = 200;

@@ -53,7 +53,7 @@ DrawerSchema.statics.findPublicDrawers = async function ({ skip }) {
 
     const result = { totalCount: 0, list: [] };
     result.totalCount = await this.countDocuments(query);
-    const list = await this.find()
+    const list = await this.find(query)
         .select(["_id", "name", "desc", "forkList", "likeList", "userId"])
         .populate({
             path: "userId",
@@ -68,7 +68,7 @@ DrawerSchema.statics.findPublicDrawers = async function ({ skip }) {
         id: drawer._id,
         name: drawer.name,
         desc: drawer.desc,
-        userNickname: drawer.userId.nickname,
+        link: `/@${drawer.userId.nickname}/${drawer.name}`,  
         forkCounts: drawer.forkList ? drawer.forkList.length : 0,
         likeCounts: drawer.likeList ? drawer.likeList.length : 0,
     }));
