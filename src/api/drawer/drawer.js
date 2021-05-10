@@ -68,6 +68,7 @@ DrawerSchema.statics.findPublicDrawers = async function ({ skip }) {
         id: drawer._id,
         name: drawer.name,
         desc: drawer.desc,
+        userNickname: drawer.userId.nickname,
         link: `/@${drawer.userId.nickname}/${drawer.name}`,  
         forkCounts: drawer.forkList ? drawer.forkList.length : 0,
         likeCounts: drawer.likeList ? drawer.likeList.length : 0,
