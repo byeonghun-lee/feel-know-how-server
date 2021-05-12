@@ -100,11 +100,11 @@ export const getCards = async (ctx) => {
             ctx.status = 404;
             return;
         }
+        const isOwner =
+            ctx.state.auth &&
+            ctx.state.auth.userId.toString() === drawer.userId.toString();
 
-        if (
-            !drawer.allPublic &&
-            ctx.state.auth.userId.toString() !== drawer.userId.toString()
-        ) {
+        if (!drawer.allPublic && !isOwner) {
             ctx.status = 403;
             return;
         }
@@ -118,6 +118,7 @@ export const getCards = async (ctx) => {
             drawerName: drawer.name,
             drawerDesc: drawer.desc,
             tagList: drawer.tags,
+            isOwner: !!isOwner,
             cardList,
         };
     } catch (error) {
