@@ -15,7 +15,7 @@ export const createMailAuth = async ({ ctx, email }) => {
         .select("expireAt")
         .lean();
 
-    if (mailAuth && Day().diff(Day(mailAuth.expireAt), "s") < 30) {
+    if (mailAuth && Day(mailAuth.expireAt).diff(Day(), "m") > 8) {
         throw new Error("Too many request.");
     }
 
