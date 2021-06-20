@@ -8,6 +8,7 @@ const CardSchema = new Schema({
     drawerId: { type: mongoose.Types.ObjectId },
     createdAt: { type: Date, default: new Date() },
     status: { type: String, enum: ["inBox", "trash"] },
+    isRead: { type: Boolean, default: false },
 });
 
 const Card = mongoose.model("Card", CardSchema);

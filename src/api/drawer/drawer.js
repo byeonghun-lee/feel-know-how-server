@@ -7,7 +7,6 @@ const DrawerSchema = new Schema({
     allPublic: { type: Boolean, default: false },
     originDrawerId: { type: mongoose.Types.ObjectId },
     hasOrigin: { type: Boolean, default: false },
-    readCardList: [{ cardId: { type: String }, read: { type: Boolean } }],
     toBeDeleted: { type: Boolean },
     dateToBeDeleted: { type: Date },
     createdAt: { type: Date, default: new Date() },
@@ -17,11 +16,13 @@ const DrawerSchema = new Schema({
     likeList: [{ type: mongoose.Types.ObjectId }],
     history: [
         {
-            userId: { type: String },
+            userId: { type: mongoose.Types.ObjectId },
             message: { type: String },
+            target: { type: String, enum: ["drawer", "card", "contributors"] },
+            targetId: { type: mongoose.Types.ObjectId },
             action: {
                 type: String,
-                enum: ["read", "add", "update", "remove", "addContributors"],
+                enum: ["read", "create", "update", "delete"],
             },
         },
     ],
@@ -69,7 +70,7 @@ DrawerSchema.statics.findPublicDrawers = async function ({ skip }) {
         name: drawer.name,
         desc: drawer.desc,
         userNickname: drawer.userId.nickname,
-        link: `/@${drawer.userId.nickname}/${drawer.name}`,  
+        link: `/@${drawer.userId.nickname}/${drawer.name}`,
         forkCounts: drawer.forkList ? drawer.forkList.length : 0,
         likeCounts: drawer.likeList ? drawer.likeList.length : 0,
     }));

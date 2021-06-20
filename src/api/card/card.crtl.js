@@ -35,7 +35,7 @@ export const createCard = async (ctx) => {
     const { title, desc, url, drawerId } = ctx.request.body;
 
     try {
-        await Card.create({
+        const card = await Card.create({
             title,
             desc,
             url,
@@ -43,6 +43,22 @@ export const createCard = async (ctx) => {
             userId: ctx.state.auth.userId,
             ...(!drawerId && { status: "inBox" }),
         });
+
+        if (drawerId) {
+            await Drawer.updateOne(
+                { _id: drawerId },
+                {
+                    $push: {
+                        history: {
+                            userId: ctx.state.auth.userId,
+                            target: "card",
+                            targetId: card._id,
+                            action: "create",
+                        },
+                    },
+                }
+            );
+        }
 
         ctx.status = 200;
         return;
@@ -123,6 +139,54 @@ export const getCards = async (ctx) => {
         };
     } catch (error) {
         console.log("Get cards error:", error);
+        ctx.status = 500;
+        ctx.body = error;
+        return;
+    }
+};
+
+/*
+PATCH /cards/:cardId/read-status
+*/
+export const updateReadStatus = async (ctx) => {
+    const { cardId } = ctx.request.params;
+    ctx.callbackWaitsForEmptyEventLoop = false;
+    await db.connect();
+
+    try {
+        const card = await Card.findOne({
+            _id: cardId,
+            userId: ctx.state.auth.userId,
+        });
+
+        card.isRead = !card.isRead;
+        await card.save();
+
+        if (card.drawerId) {
+            await Drawer.updateOne(
+                { _id: card.drawerId },
+                {
+                    $push: {
+                        history: {
+                            userId: ctx.state.auth.userId,
+                            message: card.isRead ? "read" : "unRead",
+                            target: "card",
+                            targetId: card._id,
+                            action: "update",
+                        },
+                    },
+                }
+            );
+        }
+
+        ctx.status = 200;
+        ctx.body = {
+            _id: card._id,
+            isRead: card.isRead,
+        };
+        return;
+    } catch (error) {
+        console.log("UpdateReadStatus Error:", error);
         ctx.status = 500;
         ctx.body = error;
         return;

@@ -39,6 +39,13 @@ export const createDrawer = async (ctx) => {
             ...(allPublic !== undefined && { allPublic }),
             userId: ctx.state.auth.userId,
             ...(tags && tags.length > 0 && { tags }),
+            history: [
+                {
+                    userId: ctx.state.auth.userId,
+                    target: "drawer",
+                    action: "create",
+                },
+            ],
         });
 
         ctx.status = 201;
