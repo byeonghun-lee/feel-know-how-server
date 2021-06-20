@@ -158,6 +158,10 @@ export const updateReadStatus = async (ctx) => {
             _id: cardId,
             userId: ctx.state.auth.userId,
         });
+        if (!card) {
+            ctx.status = 401;
+            return;
+        }
 
         card.isRead = !card.isRead;
         await card.save();
