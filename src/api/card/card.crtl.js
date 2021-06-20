@@ -19,16 +19,16 @@ export const createCard = async (ctx) => {
     await db.connect();
 
     const schema = Joi.object({
-        title: Joi.string(),
-        desc: Joi.string().max(140),
+        title: Joi.string().allow("", null),
+        desc: Joi.string().max(140).allow("", null),
         url: Joi.string().required(),
-        drawerId: Joi.string(),
+        drawerId: Joi.string().allow("", null),
     });
     const result = schema.validate(ctx.request.body);
 
     if (result.error) {
         ctx.status = 400;
-        ctx.body = result.error;
+        ctx.body = result.error.message;
         return;
     }
 
