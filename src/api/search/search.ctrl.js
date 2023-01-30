@@ -1,23 +1,33 @@
 import db from "db";
 import Drawer from "api/drawer/drawer";
 import Card from "api/card/card";
+import mongoose from "mongoose";
 
 export const search = async (ctx) => {
     ctx.callbackWaitsForEmptyEventLoop = false;
     await db.connect();
 
     const keyword = decodeURIComponent(ctx.request.query.keyword);
-    console.log("keyword:", keyword);
 
     const drawerMatchQuery = ctx.state.auth
-        ? { $or: [{ allPublic: true }, { userId: ctx.state.auth.userId }] }
+        ? {
+              $or: [
+                  { allPublic: true },
+                  { userId: mongoose.Types.ObjectId(ctx.state.auth.userId) },
+              ],
+          }
         : { allPublic: true };
 
     const drawerMatchQueryInsideCard = ctx.state.auth
         ? {
               $or: [
                   { "drawers.allPublic": true },
-                  { "drawers.userId": ctx.state.auth.userId },
+                  {
+                      "drawers.userId": mongoose.Types.ObjectId(
+                          ctx.state.auth.userId
+                      ),
+                      "drawers.allPublic": false,
+                  },
               ],
           }
         : { "drawers.allPublic": true };
@@ -58,29 +68,6 @@ export const search = async (ctx) => {
                     path: ["title", "desc"],
                 },
             })
-            // .lookup({
-            //     from: "drawers",
-            //     let: { parentDrawerId: { $toObjectId: "$_id" } },
-            //     pipeline: [
-            //         {
-            //             $match: {
-            //                 $expr: [{ drawerId: "$$parentDrawerId" }],
-            //                 // {
-
-            //                 //     // $eq: [
-            //                 //     //     "$drawerId",
-            //                 //     //     "$$parentDrawerId",
-            //                 //     //     // ObjectId("$$parentDrawerId"),
-            //                 //     //     // { $toObjectId: "$$parentDrawerId" },
-            //                 //     // ],
-            //                 // },
-            //             },
-            //         },
-            //     ],
-            //     // localField: "drawerId",
-            //     // foreignField: "_id",
-            //     as: "drawers",
-            // })
             .lookup({
                 from: "drawers",
                 localField: "drawerId",
@@ -110,7 +97,9 @@ export const search = async (ctx) => {
             })),
             cardList,
         };
+        return;
     } catch (error) {
         console.log("Error:", error);
+        return ctx.throw(500, error);
     }
 };
