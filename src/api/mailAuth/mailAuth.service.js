@@ -32,8 +32,16 @@ export const createMailAuth = async ({ ctx, email }) => {
 
         await sendEmail({
             toAddress: email,
-            subject: "ohMyDrawer verification code.",
-            message: `Your verification code is ${verifyCode}`,
+            subject: "Purrgil Pin 인증 코드 입니다.",
+            message: [
+                "안녕하세요. Purrgil Pin 인증 코드 안내 메일 입니다.",
+                "",
+                "아래 인증 코드를 복사해서 회원 가입 페이지 [인증 코드]란에 붙여 넣어주세요.",
+                "감사합니다",
+                "",
+                "",
+                `인증 코드: ${verifyCode}`,
+            ].join("\n"),
         });
         return;
     } catch (error) {
