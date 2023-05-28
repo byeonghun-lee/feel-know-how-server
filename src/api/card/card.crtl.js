@@ -135,6 +135,7 @@ export const getCards = async (ctx) => {
             drawerDesc: drawer.desc,
             tagList: drawer.tags,
             isOwner: !!isOwner,
+            allPublic: drawer.allPublic,
             cardList,
         };
     } catch (error) {
