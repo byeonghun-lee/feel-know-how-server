@@ -1,4 +1,8 @@
 import mongoose, { Schema } from "mongoose";
+import dayjs from "dayjs";
+import "dayjs/locale/ko";
+
+dayjs.locale("ko");
 
 const DrawerSchema = new Schema({
     name: { type: String, required: true, maxlength: 15 },
@@ -9,7 +13,7 @@ const DrawerSchema = new Schema({
     hasOrigin: { type: Boolean, default: false },
     toBeDeleted: { type: Boolean },
     dateToBeDeleted: { type: Date },
-    createdAt: { type: Date, default: new Date() },
+    createdAt: { type: Date, default: () => dayjs().toDate() },
     contributors: [{ type: mongoose.Types.ObjectId }],
     tags: [{ type: String, maxlength: 6 }],
     forkList: [{ type: mongoose.Types.ObjectId }],

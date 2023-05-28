@@ -3,6 +3,10 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import config from "config";
 import Joi from "joi";
+import dayjs from "dayjs";
+import "dayjs/locale/ko";
+
+dayjs.locale("ko");
 
 const saltRounds = 10;
 
@@ -11,7 +15,7 @@ const AuthSchema = new Schema({
     phoneNumber: { type: String },
     nickname: { type: String, unique: true },
     hasdedPassword: { type: String },
-    createdAt: { type: Date, default: new Date() },
+    createdAt: { type: Date, default: () => dayjs().toDate() },
     expireAt: { type: Date },
 });
 AuthSchema.index({ expireAt: 1 }, { expireAfterSeconds: 0 });
