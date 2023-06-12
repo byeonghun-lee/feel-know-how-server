@@ -2,6 +2,9 @@ import db from "db";
 import Drawer from "api/drawer/drawer";
 import Card from "api/card/card";
 import mongoose from "mongoose";
+import axios from "axios";
+import { google } from "googleapis";
+import config from "config";
 
 export const search = async (ctx) => {
     ctx.callbackWaitsForEmptyEventLoop = false;
@@ -100,6 +103,70 @@ export const search = async (ctx) => {
         return;
     } catch (error) {
         console.log("Error:", error);
+        return ctx.throw(500, error);
+    }
+};
+
+export const searchYouTubeChannel = async (ctx) => {
+    // todo
+    // ip 확인 후 요청 많으면 제한
+    ctx.callbackWaitsForEmptyEventLoop = false;
+
+    const channelUrl = ctx.request.query["channel-url"];
+    console.log("channelUrl:", channelUrl);
+
+    try {
+        const youtube = google.youtube({
+            version: "v3",
+            auth: config.YOUTUBE_API_KEY,
+        });
+
+        const html = await (
+            await axios.get(`https://www.youtube.com/@${channelUrl}`)
+        ).data;
+        const channelIdReg = /https:\/\/www.youtube.com\/feeds\/videos.xml\?channel_id(.*?)(?=\"\>)/;
+        const channelIdUrl = html.match(channelIdReg)[0];
+        console.log("channelIdUrl", channelIdUrl);
+        const channelId = channelIdUrl.split("channel_id=")[1];
+        console.log("channelId:", channelId);
+
+        if (!channelId) {
+            ctx.status = 400;
+            return;
+        }
+
+        const searchedResult = await youtube.channels.list({
+            part: "snippet, brandingSettings, statistics",
+            id: channelId,
+        });
+        const searchedYouTubeChannelInfo = searchedResult.data?.items?.[0];
+        console.log(
+            "searchedYouTubeChannelInfo:",
+            JSON.stringify(searchedYouTubeChannelInfo)
+        );
+
+        ctx.body = {
+            id: channelId,
+            title: searchedYouTubeChannelInfo?.snippet?.title || "-",
+            description:
+                searchedYouTubeChannelInfo?.snippet?.description || "-",
+            customUrl: searchedYouTubeChannelInfo?.snippet?.customUrl || "-",
+            thumbnails:
+                searchedYouTubeChannelInfo?.snippet?.thumbnails?.medium?.url ||
+                "-",
+            country: searchedYouTubeChannelInfo?.snippet.country || "-",
+            subscriberCount:
+                searchedYouTubeChannelInfo?.statistics.subscriberCount || "-",
+            viewCount: searchedYouTubeChannelInfo?.statistics.viewCount || "-",
+            videoCount:
+                searchedYouTubeChannelInfo?.statistics.videoCount || "-",
+            keywords:
+                searchedYouTubeChannelInfo?.brandingSettings.channel.keywords ||
+                "-",
+        };
+        return;
+    } catch (error) {
+        console.log("ERROR:", error);
         return ctx.throw(500, error);
     }
 };
