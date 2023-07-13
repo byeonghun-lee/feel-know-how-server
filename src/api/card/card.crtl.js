@@ -197,3 +197,80 @@ export const updateReadStatus = async (ctx) => {
         return;
     }
 };
+
+/*
+PATCH /cards
+{
+    title: "기술뉴스",
+    desc: "21년3월 개발 뉴스 - 볼만한 링크 보기"
+    url: "https://blog.outsider.ne.kr/1536",
+    drawerId: ""
+}
+*/
+export const updateCard = async (ctx) => {
+    const { cardId } = ctx.request.params;
+    ctx.callbackWaitsForEmptyEventLoop = false;
+    await db.connect();
+
+    const schema = Joi.object({
+        title: Joi.string().allow("", null),
+        desc: Joi.string().max(140).allow("", null),
+        url: Joi.string().required(),
+        drawerId: Joi.string().allow("", null),
+    });
+    const result = schema.validate(ctx.request.body);
+
+    if (result.error) {
+        ctx.status = 400;
+        ctx.body = result.error.message;
+        return;
+    }
+
+    const { title, desc, url, drawerId } = ctx.request.body;
+
+    try {
+        const card = await Card.findOneAndUpdate(
+            {
+                _id: cardId,
+                userId: ctx.state.auth.userId,
+            },
+            {
+                title,
+                desc,
+                url,
+                drawerId,
+                userId: ctx.state.auth.userId,
+                ...(!drawerId && { status: "inBox" }),
+            }
+        );
+
+        if (!card) {
+            ctx.status = 401;
+            return;
+        }
+
+        if (drawerId) {
+            await Drawer.updateOne(
+                { _id: drawerId },
+                {
+                    $push: {
+                        history: {
+                            userId: ctx.state.auth.userId,
+                            target: "card",
+                            targetId: card._id,
+                            action: "update",
+                        },
+                    },
+                }
+            );
+        }
+
+        ctx.status = 200;
+        return;
+    } catch (error) {
+        console.log("Update Card Error:", error);
+        ctx.status = 500;
+        ctx.body = error;
+        return;
+    }
+};
