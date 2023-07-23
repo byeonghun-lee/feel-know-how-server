@@ -14,6 +14,7 @@ const DrawerSchema = new Schema({
     toBeDeleted: { type: Boolean },
     dateToBeDeleted: { type: Date },
     createdAt: { type: Date, default: () => dayjs().toDate() },
+    updatedAt: { type: Date, default: () => dayjs().toDate() },
     contributors: [{ type: mongoose.Types.ObjectId }],
     tags: [{ type: String, maxlength: 6 }],
     forkList: [{ type: mongoose.Types.ObjectId }],
@@ -66,7 +67,7 @@ DrawerSchema.statics.findPublicDrawers = async function ({ skip }) {
         })
         .limit(30)
         .skip(skip)
-        .sort({ totalViews: -1, createdAt: -1 })
+        .sort({ totalViews: -1, updatedAt: -1, createdAt: -1 })
         .lean();
 
     result.list = list.map((drawer) => ({

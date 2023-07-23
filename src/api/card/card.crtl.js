@@ -56,6 +56,7 @@ export const createCard = async (ctx) => {
                             action: "create",
                         },
                     },
+                    updatedAt: Day(),
                 }
             );
         }
