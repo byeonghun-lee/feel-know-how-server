@@ -24,7 +24,15 @@ global.Day = dayjs;
 
 app.use(
     cors({
-        origin: (ctx) => ctx.request.header.origin,
+        allowMethods: "GET,HEAD,PUT,POST,DELETE,PATCH,OPTIONS",
+        origin: (ctx) => {
+            console.log(
+                "ctx.request.header.origin:",
+                ctx.request.header.origin
+            );
+            // return "http://localhost:3000"
+            return ctx.request.header.origin;
+        },
         credentials: (ctx) => true,
     })
 );
