@@ -14,11 +14,11 @@ export const getList = async (ctx) => {
 
     try {
         await ReadingList.updateMany(
-            { userId, createdAt: Day().subtract(2, "day") },
+            { userId, createdAt: { $lt: Day().subtract(2, "day") } },
             { isExpired: true }
         );
 
-        const list = await ReadingList.find({ userId })
+        const list = await ReadingList.find({ userId, isExpired: false })
             .populate("cardId")
             .sort({ createdAt: -1 })
             .lean();
