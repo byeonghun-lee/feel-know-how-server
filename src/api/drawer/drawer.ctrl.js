@@ -18,8 +18,8 @@ export const createDrawer = async (ctx) => {
 
     const schema = Joi.object({
         name: Joi.string().required(),
-        desc: Joi.string().max(140),
-        tags: Joi.array().items(Joi.string()),
+        desc: Joi.string().max(140).allow("", null),
+        tags: Joi.array().items(Joi.string()).allow("", null),
         allPublic: Joi.boolean(),
     });
     const result = schema.validate(ctx.request.body);
