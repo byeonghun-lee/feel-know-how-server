@@ -72,7 +72,7 @@ export const createCard = async (ctx) => {
 };
 
 /*
-GET /cards?nickname=hun&drawername=asldjal
+GET /cards?nickname=hun&draweruniquename=asldjal
 */
 
 export const getCards = async (ctx) => {
@@ -81,7 +81,7 @@ export const getCards = async (ctx) => {
 
     const schema = Joi.object({
         nickname: Joi.string().required(),
-        drawername: Joi.string().required(),
+        draweruniquename: Joi.string().required(),
     });
 
     const result = schema.validate(ctx.request.query);
@@ -92,14 +92,14 @@ export const getCards = async (ctx) => {
         return;
     }
 
-    const { nickname, drawername } = ctx.request.query;
+    const { nickname, draweruniquename } = ctx.request.query;
 
     try {
         const user = await Auth.findOne({ nickname }).select("_id").lean();
 
         const drawer = await Drawer.findOne({
             userId: user._id,
-            name: drawername,
+            uniqueNameForUser: draweruniquename,
         })
             .select([
                 "_id",

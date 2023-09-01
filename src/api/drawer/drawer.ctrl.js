@@ -1,6 +1,7 @@
 import Joi from "joi";
 import Drawer from "api/drawer/drawer";
 import db from "db";
+import { getUniqueNameForUser } from "api/drawer/drawer.service";
 
 /*
 POST /drawers
@@ -23,6 +24,7 @@ export const createDrawer = async (ctx) => {
         allPublic: Joi.boolean(),
     });
     const result = schema.validate(ctx.request.body);
+    const userId = ctx.state.auth.userId;
 
     if (result.error) {
         ctx.status = 400;
@@ -33,15 +35,18 @@ export const createDrawer = async (ctx) => {
     const { name, desc, allPublic, tags } = ctx.request.body;
 
     try {
+        const uniqueNameForUser = await getUniqueNameForUser({ name, userId });
+
         await Drawer.create({
             name,
+            uniqueNameForUser,
             desc,
             ...(allPublic !== undefined && { allPublic }),
-            userId: ctx.state.auth.userId,
+            userId,
             ...(tags && tags.length > 0 && { tags }),
             history: [
                 {
-                    userId: ctx.state.auth.userId,
+                    userId,
                     target: "drawer",
                     action: "create",
                 },
@@ -68,7 +73,7 @@ export const getDrawers = async (ctx) => {
         const DrawerList = await Drawer.find({
             userId: ctx.state.auth.userId,
         })
-            .select(["_id", "name", "allPublic"])
+            .select(["_id", "name", "uniqueNameForUser", "allPublic"])
             .sort({ createdAt: -1 })
             .lean();
 

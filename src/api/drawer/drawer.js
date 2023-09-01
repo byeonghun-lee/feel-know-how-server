@@ -6,6 +6,7 @@ dayjs.locale("ko");
 
 const DrawerSchema = new Schema({
     name: { type: String, required: true, maxlength: 15 },
+    uniqueNameForUser: { type: String, required: true },
     desc: { type: String, maxLength: 141 },
     userId: { type: mongoose.Types.ObjectId, required: true, ref: "Auth" },
     allPublic: { type: Boolean, default: false },
@@ -60,7 +61,15 @@ DrawerSchema.statics.findPublicDrawers = async function ({ skip }) {
     const result = { totalCount: 0, list: [] };
     result.totalCount = await this.countDocuments(query);
     const list = await this.find(query)
-        .select(["_id", "name", "desc", "forkList", "likeList", "userId"])
+        .select([
+            "_id",
+            "name",
+            "desc",
+            "forkList",
+            "likeList",
+            "userId",
+            "uniqueNameForUser",
+        ])
         .populate({
             path: "userId",
             selct: "nickname",
@@ -75,7 +84,7 @@ DrawerSchema.statics.findPublicDrawers = async function ({ skip }) {
         name: drawer.name,
         desc: drawer.desc,
         userNickname: drawer.userId.nickname,
-        link: `/@${drawer.userId.nickname}/${drawer.name}`,
+        link: `/@${drawer.userId.nickname}/${drawer.uniqueNameForUser}`,
         forkCounts: drawer.forkList ? drawer.forkList.length : 0,
         likeCounts: drawer.likeList ? drawer.likeList.length : 0,
     }));
