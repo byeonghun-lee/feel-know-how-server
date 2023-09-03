@@ -1,8 +1,8 @@
 service: feel-know-how-server
-frameworkVersion: "2"
+# frameworkVersion: "2.1.0"
 provider:
     name: aws
-    runtime: nodejs12.x
+    runtime: nodejs14.x
     stage: prod
     region: ap-northeast-2
 plugins:
@@ -22,11 +22,17 @@ functions:
             - http:
                 path: /
                 method: ANY
-                cors: true
+                # cors:
+                #     origin: "https://www.ohmydrawer.com"
+                #     allowCredentials: true
+                # cors: true
             - http:
                 path: "{proxy+}"
                 method: ANY
-                cors: true
+                # cors:
+                #     origin: "https://www.ohmydrawer.com"
+                #     allowCredentials: true
+                # cors: true
             
 package:
     individually: true
