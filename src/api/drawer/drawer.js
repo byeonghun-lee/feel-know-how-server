@@ -12,7 +12,7 @@ const DrawerSchema = new Schema({
     allPublic: { type: Boolean, default: false },
     originDrawerId: { type: mongoose.Types.ObjectId },
     hasOrigin: { type: Boolean, default: false },
-    toBeDeleted: { type: Boolean },
+    toBeDeleted: { type: Boolean, default: false },
     dateToBeDeleted: { type: Date },
     createdAt: { type: Date, default: () => dayjs().toDate() },
     updatedAt: { type: Date, default: () => dayjs().toDate() },
@@ -53,6 +53,7 @@ DrawerSchema.pre("save", function (next) {
 DrawerSchema.statics.findPublicDrawers = async function ({ skip }) {
     const query = {
         allPublic: true,
+        toBeDeleted: false,
     };
 
     // todo

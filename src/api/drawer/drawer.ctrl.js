@@ -72,6 +72,7 @@ export const getDrawers = async (ctx) => {
     try {
         const DrawerList = await Drawer.find({
             userId: ctx.state.auth.userId,
+            toBeDeleted: false,
         })
             .select(["_id", "name", "uniqueNameForUser", "allPublic"])
             .sort({ createdAt: -1 })
@@ -106,6 +107,104 @@ export const getPublicDrawers = async (ctx) => {
         return;
     } catch (error) {
         console.log("get public drawers error", error);
+        return ctx.throw(500, error);
+    }
+};
+
+/*
+PATCH /drawers/drawerId
+*/
+
+export const update = async (ctx) => {
+    ctx.callbackWaitsForEmptyEventLoop = false;
+    await db.connect();
+    const { drawerId } = ctx.request.params;
+    if (!drawerId) {
+        console.log("Missing drawer ID.");
+        return ctx.throw(400, "Drawer ID is required.");
+    }
+
+    const schema = Joi.object({
+        name: Joi.string().required(),
+        desc: Joi.string().max(140).allow("", null),
+        tags: Joi.array().items(Joi.string()).allow("", null),
+        allPublic: Joi.boolean(),
+    });
+    const result = schema.validate(ctx.request.body);
+
+    if (result.error) {
+        ctx.status = 400;
+        ctx.body = result.error.message;
+        return;
+    }
+    const { name, desc, allPublic, tags } = ctx.request.body;
+    const userId = ctx.state.auth.userId;
+
+    try {
+        const uniqueNameForUser = await getUniqueNameForUser({ name, userId });
+
+        await Drawer.updateOne(
+            { _id: drawerId, userId },
+            {
+                name,
+                uniqueNameForUser,
+                desc,
+                ...(allPublic !== undefined && { allPublic }),
+                ...(tags && tags.length > 0 && { tags }),
+                updatedAt: Day().toDate(),
+                $push: {
+                    history: {
+                        userId,
+                        target: "drawer",
+                        action: "update",
+                    },
+                },
+            }
+        );
+
+        ctx.status = 205;
+        return;
+    } catch (error) {
+        console.log("Update drawer error:", error);
+        return ctx.throw(500, error);
+    }
+};
+
+/*
+DELETE /drawers/drawerId
+*/
+
+export const deleteSoft = async (ctx) => {
+    ctx.callbackWaitsForEmptyEventLoop = false;
+    await db.connect();
+    const { drawerId } = ctx.request.params;
+    if (!drawerId) {
+        console.log("Missing drawer ID.");
+        return ctx.throw(400, "Drawer ID is required.");
+    }
+    const userId = ctx.state.auth.userId;
+
+    try {
+        await Drawer.updateOne(
+            { _id: drawerId, userId },
+            {
+                toBeDeleted: true,
+                dateToBeDeleted: Day().toDate(),
+                updatedAt: Day().toDate(),
+                $push: {
+                    history: {
+                        userId,
+                        target: "drawer",
+                        action: "delete",
+                    },
+                },
+            }
+        );
+
+        ctx.status = 205;
+        return;
+    } catch (error) {
+        console.log("Delete drawer error:", error);
         return ctx.throw(500, error);
     }
 };

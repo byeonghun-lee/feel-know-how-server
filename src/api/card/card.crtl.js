@@ -200,7 +200,7 @@ export const updateReadStatus = async (ctx) => {
 };
 
 /*
-PATCH /cards
+PATCH /cards/:cardId
 {
     title: "기술뉴스",
     desc: "21년3월 개발 뉴스 - 볼만한 링크 보기"
