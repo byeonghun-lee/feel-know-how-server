@@ -15,7 +15,7 @@ export const search = async (ctx) => {
     const drawerMatchQuery = ctx.state.auth
         ? {
               $or: [
-                  { allPublic: true },
+                  { allPublic: true, toBeDeleted: false },
                   { userId: mongoose.Types.ObjectId(ctx.state.auth.userId) },
               ],
           }
@@ -24,16 +24,17 @@ export const search = async (ctx) => {
     const drawerMatchQueryInsideCard = ctx.state.auth
         ? {
               $or: [
-                  { "drawers.allPublic": true },
+                  { "drawers.allPublic": true, "drawers.toBeDeleted": false },
                   {
                       "drawers.userId": mongoose.Types.ObjectId(
                           ctx.state.auth.userId
                       ),
                       "drawers.allPublic": false,
+                      "drawers.toBeDeleted": false,
                   },
               ],
           }
-        : { "drawers.allPublic": true };
+        : { "drawers.allPublic": true, "drawers.toBeDeleted": false };
 
     try {
         const drawerList = await Drawer.aggregate()
@@ -59,6 +60,7 @@ export const search = async (ctx) => {
                 allPublic: 1,
                 forkList: 1,
                 likeList: 1,
+                uniqueNameForUser: 1,
                 "users.nickname": 1,
             })
             .limit(3);
@@ -94,7 +96,7 @@ export const search = async (ctx) => {
                 name: drawer.name,
                 desc: drawer.desc,
                 userNickname: drawer.users.nickname,
-                link: `/@${drawer.users.nickname}/${drawer.name}`,
+                link: `/@${drawer.users.nickname}/${drawer.uniqueNameForUser}`,
                 forkCounts: drawer.forkList ? drawer.forkList.length : 0,
                 likeCounts: drawer.likeList ? drawer.likeList.length : 0,
             })),
