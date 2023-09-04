@@ -132,6 +132,7 @@ export const getCards = async (ctx) => {
 
         ctx.status = 200;
         ctx.body = {
+            drawerId: drawer._id,
             drawerName: drawer.name,
             drawerDesc: drawer.desc,
             tagList: drawer.tags,
