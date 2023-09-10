@@ -110,6 +110,7 @@ export const getCards = async (ctx) => {
                 "contributors",
                 "tags",
                 "likeList",
+                "toBeDeleted",
             ])
             .lean();
 
@@ -121,7 +122,10 @@ export const getCards = async (ctx) => {
             ctx.state.auth &&
             ctx.state.auth.userId.toString() === drawer.userId.toString();
 
-        if (!drawer.allPublic && !isOwner) {
+        if (
+            (!drawer.allPublic && !isOwner) ||
+            (drawer.toBeDeleted && !isOwner)
+        ) {
             ctx.status = 403;
             return;
         }
@@ -135,6 +139,7 @@ export const getCards = async (ctx) => {
             drawerId: drawer._id,
             drawerName: drawer.name,
             drawerDesc: drawer.desc,
+            drawerToBeDeleted: drawer.toBeDeleted,
             tagList: drawer.tags,
             isOwner: !!isOwner,
             allPublic: drawer.allPublic,
