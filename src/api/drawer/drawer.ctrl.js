@@ -141,7 +141,11 @@ export const update = async (ctx) => {
     const userId = ctx.state.auth.userId;
 
     try {
-        const uniqueNameForUser = await getUniqueNameForUser({ name, userId });
+        const uniqueNameForUser = await getUniqueNameForUser({
+            name,
+            userId,
+            drawerId,
+        });
 
         await Drawer.updateOne(
             { _id: drawerId, userId },
@@ -162,7 +166,8 @@ export const update = async (ctx) => {
             }
         );
 
-        ctx.status = 205;
+        ctx.status = 200;
+        ctx.body = { uniqueNameForUser };
         return;
     } catch (error) {
         console.log("Update drawer error:", error);

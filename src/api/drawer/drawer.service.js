@@ -1,7 +1,7 @@
 import Drawer from "api/drawer/drawer";
 import { makeRandomId } from "lib/common";
 
-export const getUniqueNameForUser = async ({ name, userId }) => {
+export const getUniqueNameForUser = async ({ name, userId, drawerId }) => {
     if (!name || !userId) {
         throw new Error("Missing required params.");
     }
@@ -9,6 +9,7 @@ export const getUniqueNameForUser = async ({ name, userId }) => {
     let uniqueName = name;
 
     const drawerWithDuplicateName = await Drawer.findOne({
+        ...(drawerId && { _id: { $ne: drawerId } }),
         name: name.charAt(0).toUpperCase() + name.slice(1, name.length),
         userId,
     })
