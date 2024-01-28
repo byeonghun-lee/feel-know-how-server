@@ -6,8 +6,14 @@ dayjs.locale("ko");
 
 const SnsAccountSchema = new Schema({
     userId: { type: mongoose.Types.ObjectId, required: true, ref: "Auth" },
-    instagram: { type: String },
-    youtube: { type: String },
+    instagram: {
+        path: { type: String },
+        isRegister: { type: Boolean, default: false },
+    },
+    youtube: {
+        path: { type: String },
+        isRegister: { type: Boolean, default: false },
+    },
     createdAt: { type: Date, default: () => dayjs().toDate() },
     updatedAt: { type: Date, default: () => dayjs().toDate() },
 });
