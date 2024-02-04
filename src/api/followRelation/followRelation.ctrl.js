@@ -19,9 +19,11 @@ export const getList = async (ctx) => {
             .select(["userId", snsName])
             .lean();
 
-        if (!snsAccount) {
+        if (!snsAccount?.[snsName]?.path) {
             result.accountStatus = "empty";
-        } else if (["request", "pending"].indexOf(snsAccount.status) >= 0) {
+        } else if (
+            ["request", "pending"].indexOf(snsAccount[snsName].status) >= 0
+        ) {
             result.accountStatus = "pending";
         } else {
             result.accountStatus = "complete";
