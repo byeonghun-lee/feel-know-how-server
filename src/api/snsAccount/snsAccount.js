@@ -20,7 +20,7 @@ const SnsAccountSchema = new Schema({
         status: {
             type: String,
             enum: ["request", "pending", "complete"],
-            default: "request",
+            // default: "request",
         },
     },
     youtube: {
@@ -37,7 +37,7 @@ const SnsAccountSchema = new Schema({
         status: {
             type: String,
             enum: ["request", "pending", "complete"],
-            default: "request",
+            // default: "request",
         },
     },
     createdAt: { type: Date, default: () => dayjs().toDate() },
