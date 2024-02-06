@@ -12,6 +12,7 @@ const snsProfileSchema = new Schema({
     lastUploadedAt: { type: Date },
     createdAt: { type: Date, default: () => dayjs().toDate() },
     updatedAt: { type: Date, default: () => dayjs().toDate() },
+    imageUrl: { type: String },
 });
 
 const SnsProfile = mongoose.model("SnsProfile", snsProfileSchema);
