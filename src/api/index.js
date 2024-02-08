@@ -6,6 +6,7 @@ import search from "api/search";
 import readingList from "api/readingList";
 import followRelation from "api/followRelation";
 import snsAccount from "api/snsAccount";
+import group from "api/group";
 
 const api = new Router();
 
@@ -16,5 +17,6 @@ api.use("/search", search.routes());
 api.use("/reading-lists", readingList.routes());
 api.use("/follow-relations", followRelation.routes());
 api.use("/sns-accounts", snsAccount.routes());
+api.use("/groups", group.routes());
 
 export default api;
