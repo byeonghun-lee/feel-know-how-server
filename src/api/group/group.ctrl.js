@@ -1,5 +1,6 @@
 import Joi from "joi";
 import Group from "api/group/group";
+import FollowRelation from "api/followRelation/followRelation";
 import db from "db";
 
 /*
@@ -70,9 +71,44 @@ PATCH /groups/:groupId/follows
     followIds: []
 }
 */
-
 export const addFollows = async (ctx) => {
+    const { groupId } = ctx.request.params;
+    const userId = ctx.state.auth.userId;
+    ctx.callbackWaitsForEmptyEventLoop = false;
+    await db.connect();
+
+    const schema = Joi.object({
+        followIds: Joi.array().items(Joi.string()).allow("", null),
+    });
+
+    const result = schema.validate(ctx.request.body);
+
+    if (result.error) {
+        ctx.status = 400;
+        ctx.body = result.error;
+        return;
+    }
+
+    const { followIds } = ctx.request.body;
+
     try {
+        const group = await Group.findOne({ _id: groupId, userId })
+            .select("_id")
+            .lean();
+
+        if (!group) {
+            throw new Error("Not found group.");
+        }
+
+        await FollowRelation.updateMany(
+            {
+                userId,
+                followId: { $in: followIds },
+            },
+            { $addToSet: { groupIdList: group._id } }
+        );
+
+        ctx.status = 200;
         return;
     } catch (error) {
         console.log("Get group list error:", error);
