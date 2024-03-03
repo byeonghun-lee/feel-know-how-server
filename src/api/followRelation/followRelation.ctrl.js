@@ -1,4 +1,3 @@
-import Joi from "joi";
 import FollowRelation from "api/followRelation/followRelation";
 import SnsAccount from "api/snsAccount/snsAccount";
 import db from "db";
@@ -30,7 +29,13 @@ export const getList = async (ctx) => {
             const list = await FollowRelation.find({ userId, snsName })
                 .populate({
                     path: "followId",
-                    select: ["path", "name", "desc", "lastUploadedAt"],
+                    select: [
+                        "path",
+                        "name",
+                        "desc",
+                        "lastUploadedAt",
+                        "imageUrl",
+                    ],
                 })
                 .sort({ _id: -1 })
                 .lean();
