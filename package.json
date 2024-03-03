@@ -22,7 +22,8 @@
         "koa-bodyparser": "^4.3.0",
         "koa-router": "^9.4.0",
         "mongoose": "^5.10.9",
-        "serverless-http": "^2.6.0"
+        "serverless-http": "^2.6.0",
+        "uuid": "^9.0.1"
     },
     "devDependencies": {
         "@babel/core": "^7.12.3",
