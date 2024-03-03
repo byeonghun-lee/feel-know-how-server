@@ -143,3 +143,39 @@ export const addFollows = async (ctx) => {
         return;
     }
 };
+
+/*
+GET /groups/:uuid
+*/
+export const getGroupItemList = async (ctx) => {
+    const { uuid } = ctx.request.params;
+    const userId = ctx.state.auth.userId;
+    ctx.callbackWaitsForEmptyEventLoop = false;
+    await db.connect();
+
+    try {
+        const group = await Group.findOne({ uuid, userId }).lean();
+
+        if (!group) {
+            ctx.status = 404;
+            return;
+        }
+
+        const groupItemList = await GroupRelation.find({ groupId: group._id })
+            .populate({
+                path: "followRelationId",
+                select: ["followId", "snsName"],
+                populate: {
+                    path: "followId",
+                    select: ["path", "name", "desc", "imageUrl"],
+                },
+            })
+            .sort({ _id: -1 })
+            .lean();
+
+        ctx.status = 200;
+        ctx.body = groupItemList;
+    } catch (error) {
+        console.log("Get group item list error:", error);
+    }
+};
