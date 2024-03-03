@@ -12,7 +12,6 @@ const FollowRelationSchema = new Schema({
         required: true,
         ref: "SnsProfile",
     },
-    groupIdList: [{ type: mongoose.Types.ObjectId, ref: "Group" }],
     createdAt: { type: Date, default: () => dayjs().toDate() },
     updatedAt: { type: Date, default: () => dayjs().toDate() },
     lastViewedDate: { type: Date, default: () => dayjs().toDate() },

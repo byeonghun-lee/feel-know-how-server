@@ -1,7 +1,13 @@
 import Joi from "joi";
+import { v4 as uuidv4 } from "uuid";
+import dayjs from "dayjs";
 import Group from "api/group/group";
 import FollowRelation from "api/followRelation/followRelation";
+import GroupRelation from "api/groupRelation/groupRelation";
 import db from "db";
+import "dayjs/locale/ko";
+
+dayjs.locale("ko");
 
 /*
 POST /groups
@@ -28,7 +34,11 @@ export const create = async (ctx) => {
     const userId = ctx.state.auth.userId;
     const { name } = ctx.request.body;
     try {
-        const createdGroup = await Group.create({ userId, name });
+        const createdGroup = await Group.create({
+            userId,
+            name,
+            uuid: uuidv4(),
+        });
 
         ctx.status = 200;
         ctx.body = createdGroup;
@@ -100,12 +110,28 @@ export const addFollows = async (ctx) => {
             throw new Error("Not found group.");
         }
 
-        await FollowRelation.updateMany(
-            {
-                userId,
-                followId: { $in: followIds },
-            },
-            { $addToSet: { groupIdList: group._id } }
+        const followRelationList = await FollowRelation.find({
+            userId,
+            followId: { $in: followIds },
+        })
+            .select("_id")
+            .lean();
+
+        await GroupRelation.bulkWrite(
+            followRelationList.map((followRelationItem) => ({
+                updateOne: {
+                    filter: {
+                        followRelationId: followRelationItem._id,
+                        groupId: group._id,
+                    },
+                    update: {
+                        followRelationId: followRelationItem._id,
+                        groupId: group._id,
+                        createdAt: dayjs().toDate(),
+                    },
+                    upsert: true,
+                },
+            }))
         );
 
         ctx.status = 200;
