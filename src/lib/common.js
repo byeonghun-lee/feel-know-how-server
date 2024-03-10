@@ -13,3 +13,19 @@ export const makeRandomId = (length) => {
 
     return result.join("");
 };
+
+export const getCookieOptions = () => {
+    const cookieOptions = {
+        maxAge: 1000 * 60 * 60 * 24 * 7,
+        httpOnly: true,
+        sameSite: "None",
+        secure: true,
+    };
+
+    if (process.env.APP_ENV === "local") {
+        delete cookieOptions.sameSite;
+        delete cookieOptions.secure;
+    }
+
+    return cookieOptions;
+};

@@ -3,6 +3,7 @@ import db from "db";
 import Auth from "api/auth/auth";
 import * as AuthService from "api/auth/auth.service";
 import { createMailAuth, checkMailAuth } from "api/mailAuth/mailAuth.service";
+import { getCookieOptions } from "lib/common";
 
 /*
 POST /auth/register
@@ -56,10 +57,7 @@ export const register = async (ctx) => {
         ctx.body = auth.serialize();
 
         const token = auth.generateToken();
-        ctx.cookies.set("access_token", token, {
-            maxAge: 1000 * 60 * 60 * 24 * 7,
-            httpOnly: true,
-        });
+        ctx.cookies.set("access_token", token, getCookieOptions());
 
         return;
     } catch (error) {
@@ -110,10 +108,7 @@ export const login = async (ctx) => {
     ctx.body = auth.serialize();
 
     const token = auth.generateToken();
-    ctx.cookies.set("access_token", token, {
-        maxAge: 1000 * 60 * 60 * 24 * 7,
-        httpOnly: true,
-    });
+    ctx.cookies.set("access_token", token, getCookieOptions());
 
     return;
 };
