@@ -174,7 +174,7 @@ export const getGroupItemList = async (ctx) => {
             .lean();
 
         ctx.status = 200;
-        ctx.body = groupItemList;
+        ctx.body = { name: group.name, list: groupItemList };
     } catch (error) {
         console.log("Get group item list error:", error);
     }
