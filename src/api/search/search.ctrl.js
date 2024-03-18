@@ -1,10 +1,17 @@
 import db from "db";
 import Drawer from "api/drawer/drawer";
 import Card from "api/card/card";
+import SearchHistory from "api/searchHistory/searchHistory";
+import FollowRelation from "api/followRelation/followRelation";
 import mongoose from "mongoose";
 import axios from "axios";
 import { google } from "googleapis";
 import config from "config";
+
+import dayjs from "dayjs";
+import "dayjs/locale/ko";
+
+dayjs.locale("ko");
 
 export const search = async (ctx) => {
     ctx.callbackWaitsForEmptyEventLoop = false;
@@ -169,6 +176,84 @@ export const searchYouTubeChannel = async (ctx) => {
         return;
     } catch (error) {
         console.log("ERROR:", error);
+        return ctx.throw(500, error);
+    }
+};
+
+export const searchSnsProfileAndGroup = async (ctx) => {
+    ctx.callbackWaitsForEmptyEventLoop = false;
+    await db.connect();
+
+    const userId = ctx.state.auth.userId;
+    const keyword = decodeURIComponent(ctx.request.query.keyword);
+
+    try {
+        await SearchHistory.updateOne(
+            {
+                userId,
+                keyword,
+                isDeleted: false,
+            },
+            {
+                updatedAt: dayjs().toDate(),
+                $setOnInsert: {
+                    userId: userId,
+                    keyword: keyword,
+                    isDeleted: false,
+                    createdAt: dayjs().toDate(),
+                },
+            },
+            { upsert: true }
+        );
+
+        const followList = await FollowRelation.aggregate()
+            .match({
+                userId: mongoose.Types.ObjectId(userId),
+            })
+            .lookup({
+                from: "snsprofiles",
+                let: { followId: "$followId" },
+                pipeline: [
+                    {
+                        $search: {
+                            index: "snsProfileSearch",
+                            text: {
+                                query: keyword,
+                                path: ["name", "desc"],
+                            },
+                        },
+                    },
+                    {
+                        $match: {
+                            $expr: {
+                                $eq: ["$_id", "$$followId"],
+                            },
+                        },
+                    },
+                ],
+                as: "snsProfile",
+            })
+            .match({
+                "snsProfile.0": { $exists: true },
+            })
+            .unwind({
+                path: "$snsProfile",
+            });
+
+        ctx.body = {
+            followList: followList.map((followItem) => ({
+                snsName: followItem.snsNAme,
+                snsProfile: {
+                    path: followItem.snsProfile.path,
+                    desc: followItem.snsProfile.desc,
+                    name: followItem.snsProfile.name,
+                    imageUrl: followItem.snsProfile.imageUrl,
+                },
+            })),
+        };
+        return;
+    } catch (error) {
+        console.log("searchSnsProfileAndGroup error:", error);
         return ctx.throw(500, error);
     }
 };
