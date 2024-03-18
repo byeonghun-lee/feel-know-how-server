@@ -142,7 +142,7 @@ POST /auth/verify-email
 */
 
 export const sendVerifyEmailCode = async (ctx) => {
-    const { email } = ctx.request.body;
+    const { email, isFolica } = ctx.request.body;
     console.log("Email:", email);
 
     // todo
@@ -154,7 +154,7 @@ export const sendVerifyEmailCode = async (ctx) => {
 
     try {
         await AuthService.checkExistUser({ ctx, email });
-        await createMailAuth({ ctx, email });
+        await createMailAuth({ ctx, email, isFolica });
         ctx.status = 200;
         ctx.body = "ok";
     } catch (error) {
