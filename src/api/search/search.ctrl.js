@@ -187,6 +187,13 @@ export const searchSnsProfileAndGroup = async (ctx) => {
     const userId = ctx.state.auth.userId;
     const keyword = decodeURIComponent(ctx.request.query.keyword);
 
+    if (!keyword) {
+        ctx.body = {
+            followList: [],
+        };
+        return;
+    }
+
     try {
         await SearchHistory.updateOne(
             {
@@ -242,8 +249,8 @@ export const searchSnsProfileAndGroup = async (ctx) => {
 
         ctx.body = {
             followList: followList.map((followItem) => ({
-                snsName: followItem.snsNAme,
-                snsProfile: {
+                snsName: followItem.snsName,
+                followId: {
                     path: followItem.snsProfile.path,
                     desc: followItem.snsProfile.desc,
                     name: followItem.snsProfile.name,
@@ -254,6 +261,30 @@ export const searchSnsProfileAndGroup = async (ctx) => {
         return;
     } catch (error) {
         console.log("searchSnsProfileAndGroup error:", error);
+        return ctx.throw(500, error);
+    }
+};
+
+export const getHistoryForSnsProfile = async (ctx) => {
+    ctx.callbackWaitsForEmptyEventLoop = false;
+    await db.connect();
+
+    const userId = ctx.state.auth.userId;
+    try {
+        const historyList = await SearchHistory.find({
+            userId,
+            isDeleted: false,
+        })
+            .select(["keyword"])
+            .sort({ updatedAt: -1 })
+            .limit(10)
+            .lean();
+
+        ctx.status = 200;
+        ctx.body = historyList;
+        return;
+    } catch (error) {
+        console.log("getHistoryForSnsProfile error:", error);
         return ctx.throw(500, error);
     }
 };
