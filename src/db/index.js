@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 import config from "config";
+import Keyword from "api/keyword/keyword";
+import KeywordRelation from "api/keywordRelation/keywordRelation";
 
 let cachedDb = null;
 
@@ -16,9 +18,13 @@ export default {
             .connect(config.MONGO_URL, {
                 useNewUrlParser: true,
                 useUnifiedTopology: true,
+                useCreateIndex: true,
+                useFindAndModify: false,
             })
-            .then((res) => {
+            .then(async (res) => {
                 console.log("=> Connect!");
+                await Keyword.createIndexes();
+                await KeywordRelation.createIndexes();
                 cachedDb = res;
             })
             .catch((err) => {
