@@ -14,6 +14,7 @@ const DailyKeywordScrapingSchema = new Schema({
             userBlogContentUrl: { type: String },
             userBlogContentTitle: { type: String },
             userBlogContentDesc: { type: String },
+            element: { type: Object },
         },
     ],
     createdAt: { type: Date, default: () => dayjs().toDate() },

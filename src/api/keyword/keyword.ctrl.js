@@ -185,7 +185,7 @@ export const getScrapingDetailImage = async (ctx) => {
         }
 
         result.keyword = keywordRelation.keyword.name;
-        result.screenShotUrl = scrapingData.screenShotUrl;
+        result.screenshotUrl = scrapingData.screenShotUrl;
 
         if (keywordRelation.blogList?.length) {
             result.blogList = keywordRelation.blogList.map((blogUrl) => {
@@ -198,6 +198,7 @@ export const getScrapingDetailImage = async (ctx) => {
                 return {
                     url: blogUrl,
                     rank: rank >= 0 ? rank : null,
+                    elementPosition: scrapingData.textContent[rank].element,
                 };
             });
         }
