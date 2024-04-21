@@ -26,8 +26,8 @@ export const sendEmail = async ({ toAddress, subject, message }) => {
                 Data: subject,
             },
         },
-        Source: "info@ohmydrawer.com" /* required */,
-        ReplyToAddresses: ["info@ohmydrawer.com"],
+        Source: "info@chickentowel.com" /* required */,
+        ReplyToAddresses: ["info@chickentowel.com"],
     };
 
     try {

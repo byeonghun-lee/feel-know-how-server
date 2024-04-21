@@ -24,6 +24,7 @@ export const register = async (ctx) => {
         password: Joi.string().required(),
         nickname: Joi.string().max(10).required(),
         verificationCode: Joi.string().required(),
+        service: Joi.string(),
     });
     const result = schema.validate(ctx.request.body);
 
@@ -33,7 +34,13 @@ export const register = async (ctx) => {
         return;
     }
 
-    const { email, password, nickname, verificationCode } = ctx.request.body;
+    const {
+        email,
+        password,
+        nickname,
+        verificationCode,
+        service,
+    } = ctx.request.body;
 
     try {
         const exists = await Auth.findByIdentity({ email, nickname });
@@ -49,7 +56,7 @@ export const register = async (ctx) => {
             code: verificationCode,
         });
 
-        const auth = new Auth({ email, password, nickname });
+        const auth = new Auth({ email, password, nickname, service });
         await auth.setPassword(password);
         await auth.save();
         await AuthService.JobOfInitRegister(auth);
@@ -142,7 +149,7 @@ POST /auth/verify-email
 */
 
 export const sendVerifyEmailCode = async (ctx) => {
-    const { email, isFolica } = ctx.request.body;
+    const { email, isFolica, service } = ctx.request.body;
     console.log("Email:", email);
 
     // todo
@@ -152,9 +159,11 @@ export const sendVerifyEmailCode = async (ctx) => {
         return;
     }
 
+    const serviceName = isFolica ? "Folica" : service || "Purrgil Pin";
+
     try {
         await AuthService.checkExistUser({ ctx, email });
-        await createMailAuth({ ctx, email, isFolica });
+        await createMailAuth({ ctx, email, serviceName });
         ctx.status = 200;
         ctx.body = "ok";
     } catch (error) {

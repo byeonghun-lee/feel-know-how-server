@@ -3,7 +3,7 @@ import { makeRandomId } from "lib/common";
 import db from "db";
 import { sendEmail } from "aws/ses.service";
 
-export const createMailAuth = async ({ ctx, email, isFolica = false }) => {
+export const createMailAuth = async ({ ctx, email, serviceName }) => {
     if (!email) {
         throw new Error("Email is required.");
     }
@@ -33,11 +33,9 @@ export const createMailAuth = async ({ ctx, email, isFolica = false }) => {
         await sendEmail({
             toAddress: email,
 
-            subject: `${isFolica ? "Folica" : "Purrgil Pin"} 인증 코드 입니다.`,
+            subject: `${serviceName} 인증 코드 입니다.`,
             message: [
-                `안녕하세요. ${
-                    isFolica ? "Folica" : "Purrgil Pin"
-                } 인증 코드 안내 메일 입니다.`,
+                `안녕하세요. ${serviceName} 인증 코드 안내 메일 입니다.`,
                 "",
                 "아래 인증 코드를 복사해서 회원 가입 페이지 [인증 코드]란에 붙여 넣어주세요.",
                 "감사합니다",

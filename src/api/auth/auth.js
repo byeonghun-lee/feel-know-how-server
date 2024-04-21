@@ -15,6 +15,7 @@ const AuthSchema = new Schema({
     phoneNumber: { type: String },
     nickname: { type: String, unique: true },
     hasdedPassword: { type: String },
+    service: { type: String },
     createdAt: { type: Date, default: () => dayjs().toDate() },
     expireAt: { type: Date },
 });
