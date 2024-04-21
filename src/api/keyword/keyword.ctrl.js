@@ -1,9 +1,15 @@
 import Joi from "joi";
+import { v4 as uuidv4 } from "uuid";
 import Keyword from "api/keyword/keyword";
 import KeywordRelation from "api/keywordRelation/keywordRelation";
 import KeywordScrapingLog from "api/keywordScrapingLog/keywordScrapingLog";
+import DailyKeywordScraping from "api/dailyKeywordScraping/dailyKeywordScraping";
 import db from "db";
-import mongoose, { mongo } from "mongoose";
+import mongoose from "mongoose";
+import dayjs from "dayjs";
+import "dayjs/locale/ko";
+
+dayjs.locale("ko");
 
 /*
 POST /keywords
@@ -49,7 +55,7 @@ export const create = async (ctx) => {
                     keyword: savedKeyword._id,
                     isDeleted: false,
                 },
-                { userId, keyword: savedKeyword },
+                { userId, keyword: savedKeyword, uuid: uuidv4() },
                 { new: true, upsert: true, setDefaultsOnInsert: true }
             ).session(session);
 
@@ -128,6 +134,80 @@ export const getList = async (ctx) => {
         [];
     } catch (error) {
         console.log("Get keyword list error:", error);
+        ctx.status = 500;
+        ctx.body = error;
+        return;
+    }
+};
+
+/*
+GET /keywords/relations/:uuid/image
+*/
+export const getScrapingDetailImage = async (ctx) => {
+    ctx.callbackWaitsForEmptyEventLoop = false;
+    await db.connect();
+
+    const { uuid } = ctx.request.params;
+    const { date } = ctx.request.query;
+
+    console.log("uuid:", uuid);
+    console.log("date:", date);
+
+    const result = {};
+
+    try {
+        if (!uuid || !date) {
+            throw new Error("Missing required params.");
+        }
+
+        const keywordRelation = await KeywordRelation.findOne({
+            uuid,
+            isDeleted: false,
+        })
+            .select(["keyword", "blogList"])
+            .populate({ path: "keyword", select: ["name"] })
+            .lean();
+
+        if (!keywordRelation) {
+            throw new Error("Not found keyword relations.");
+        }
+
+        const scrapingData = await DailyKeywordScraping.findOne({
+            keyword: keywordRelation.keyword._id,
+            createdAt: {
+                $gte: dayjs(date).startOf("days").toDate(),
+                $lt: dayjs(date).add(1, "days").startOf("days").toDate(),
+            },
+        }).lean();
+
+        if (!scrapingData) {
+            throw new Error("Not found scraping data.");
+        }
+
+        result.keyword = keywordRelation.keyword.name;
+        result.screenShotUrl = scrapingData.screenShotUrl;
+
+        if (keywordRelation.blogList?.length) {
+            result.blogList = keywordRelation.blogList.map((blogUrl) => {
+                const rank = scrapingData.textContent.findIndex(
+                    (searchedBlog) =>
+                        searchedBlog.userBlogUrl === blogUrl ||
+                        searchedBlog.userBlogContentUrl === blogUrl
+                );
+
+                return {
+                    url: blogUrl,
+                    rank: rank >= 0 ? rank : null,
+                };
+            });
+        }
+
+        console.log("result:", result);
+        ctx.status = 200;
+        ctx.body = result;
+        return;
+    } catch (error) {
+        console.log("Get scraping detail image error:", error);
         ctx.status = 500;
         ctx.body = error;
         return;

@@ -11,8 +11,10 @@ const KeywordRelationSchema = new Schema({
         required: true,
         ref: "Keyword",
     },
+    blogList: { type: [String] },
     createdAt: { type: Date, default: () => dayjs().toDate() },
     // customScrapingTime: { type: String }, // 개별 스크래핑 시간
+    uuid: { type: String, required: true, unique: true },
     isDeleted: { type: Boolean, default: false },
 });
 
