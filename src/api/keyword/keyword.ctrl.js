@@ -1,20 +1,24 @@
 import Joi from "joi";
 import { v4 as uuidv4 } from "uuid";
+import mongoose from "mongoose";
+import dayjs from "dayjs";
+import "dayjs/locale/ko";
+
+import db from "db";
 import Keyword from "api/keyword/keyword";
 import KeywordRelation from "api/keywordRelation/keywordRelation";
 import KeywordScrapingLog from "api/keywordScrapingLog/keywordScrapingLog";
 import DailyKeywordScraping from "api/dailyKeywordScraping/dailyKeywordScraping";
-import db from "db";
-import mongoose from "mongoose";
-import dayjs from "dayjs";
-import "dayjs/locale/ko";
 
 dayjs.locale("ko");
 
 /*
 POST /keywords
 {
-    keyword: ""
+    keywords: [{
+        keyword: "",
+        blogList: [""]
+    }]
 }
 */
 export const create = async (ctx) => {
@@ -22,51 +26,98 @@ export const create = async (ctx) => {
     await db.connect();
 
     const schema = Joi.object({
-        keyword: Joi.string(),
+        keywords: Joi.array().items(
+            Joi.object({
+                keyword: Joi.string().required(),
+                blogList: Joi.array().items(Joi.string().uri()),
+            })
+        ),
     });
 
     const result = schema.validate(ctx.request.body);
     if (result.error) {
+        console.log("error:");
         ctx.status = 400;
         ctx.body = result.error;
         return;
     }
 
     const userId = ctx.state.auth.userId;
-    const { keyword } = ctx.request.body;
+    const { keywords } = ctx.request.body;
     const target = "naverBlog";
     const session = await mongoose.startSession();
+    console.log("keywords:", JSON.stringify(keywords));
 
     try {
         await session.withTransaction(async () => {
-            const savedKeyword = await Keyword.findOneAndUpdate(
-                {
-                    name: keyword,
-                    target,
-                },
-                { name: keyword, target },
-                { new: true, upsert: true, setDefaultsOnInsert: true }
-            ).session(session);
-            console.log("savedKeyword:", savedKeyword);
+            await Keyword.bulkWrite(
+                keywords.map((item) => ({
+                    updateOne: {
+                        filter: {
+                            name: item.keyword,
+                            target,
+                        },
+                        update: {
+                            name: item.keyword,
+                            target,
+                        },
+                        new: true,
+                        upsert: true,
+                        setDefaultsOnInsert: true,
+                    },
+                })),
+                { session }
+            );
 
-            const keywordRelation = await KeywordRelation.findOneAndUpdate(
-                {
+            const savedKeywordList = await Keyword.find({
+                name: { $in: keywords.map((item) => item.keyword) },
+                target,
+            })
+                .session(session)
+                .select(["_id", "name"]);
+            console.log("savedKeywordList:", savedKeywordList);
+
+            const existedRelationList = await KeywordRelation.find({
+                userId,
+                keyword: { $in: savedKeywordList.map((item) => item._id) },
+                isDeleted: false,
+            })
+                .select("_id")
+                .lean();
+
+            const keywordListToAdded = savedKeywordList.filter(
+                (keywordItem) =>
+                    !existedRelationList.find(
+                        (existedItem) =>
+                            existedItem._id.toString() ===
+                            keywordItem._id.toString()
+                    )
+            );
+            console.log("keywordListToAdded:", keywordListToAdded);
+
+            const newCreatedKeywordRelations = await KeywordRelation.create(
+                keywordListToAdded.map((keyword) => ({
                     userId,
-                    keyword: savedKeyword._id,
-                    isDeleted: false,
-                },
-                { userId, keyword: savedKeyword, uuid: uuidv4() },
-                { new: true, upsert: true, setDefaultsOnInsert: true }
-            ).session(session);
+                    keyword: keyword._id,
+                    blogList: keywords.find(
+                        (item) => item.keyword === keyword.name
+                    )?.blogList,
+                    uuid: uuidv4(),
+                })),
+                { session }
+            );
+
+            console.log(
+                "newCreatedKeywordRelations:",
+                newCreatedKeywordRelations
+            );
 
             await KeywordScrapingLog.create(
-                [
-                    {
-                        keywordRelation: keywordRelation._id,
-                        userId,
-                        action: "create",
-                    },
-                ],
+                newCreatedKeywordRelations.map((relation) => ({
+                    keywordRelation: relation._id,
+                    userId,
+                    action: "create",
+                })),
                 { session }
             );
         });
@@ -101,6 +152,7 @@ export const getList = async (ctx) => {
             userId,
             isDeleted: false,
         })
+            .slice("blogList", 3)
             .populate({ path: "keyword", select: ["name"] })
             .populate({
                 path: "log",
@@ -120,8 +172,9 @@ export const getList = async (ctx) => {
 
         result.totalCount = keywordRelationList.length;
         result.list = keywordRelationList.map((relationItem) => ({
-            _id: relationItem._id,
+            uuid: relationItem.uuid,
             name: relationItem.keyword.name,
+            blogList: relationItem.blogList,
             logList: relationItem.log.map((log) => ({
                 action: log.action,
                 createdAt: log.createdAt,
