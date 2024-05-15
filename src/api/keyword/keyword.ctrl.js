@@ -251,7 +251,10 @@ export const getScrapingDetailImage = async (ctx) => {
                 return {
                     url: blogUrl,
                     rank: rank >= 0 ? rank : null,
-                    elementPosition: scrapingData.textContent[rank].element,
+                    elementPosition:
+                        rank >= 0
+                            ? scrapingData.textContent[rank].element
+                            : null,
                 };
             });
         }
