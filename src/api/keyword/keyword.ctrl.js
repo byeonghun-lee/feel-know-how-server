@@ -36,9 +36,8 @@ export const create = async (ctx) => {
 
     const result = schema.validate(ctx.request.body);
     if (result.error) {
-        console.log("error:");
-        ctx.status = 400;
-        ctx.body = result.error;
+        console.log("error:", result.error);
+        ctx.throw(400, result.error);
         return;
     }
 
@@ -125,8 +124,7 @@ export const create = async (ctx) => {
         ctx.status = 200;
     } catch (error) {
         console.log("Create keyword error:", error);
-        ctx.status = 500;
-        ctx.body = error;
+        ctx.throw(500, error.message);
     } finally {
         await session.endSession();
         console.log("endSession");
@@ -184,11 +182,68 @@ export const getList = async (ctx) => {
         ctx.status = 200;
         ctx.body = result;
         return;
-        [];
     } catch (error) {
         console.log("Get keyword list error:", error);
-        ctx.status = 500;
-        ctx.body = error;
+        ctx.throw(500, error.message);
+        return;
+    }
+};
+
+/*
+GET /keywords/relations/:uuid
+*/
+
+export const getKeywordDetail = async (ctx) => {
+    ctx.callbackWaitsForEmptyEventLoop = false;
+    await db.connect();
+
+    const { uuid } = ctx.request.params;
+    const userId = ctx.state.auth.userId;
+    console.log("uuid:", uuid);
+
+    try {
+        if (!uuid) {
+            throw new Error("Missing required params.");
+        }
+
+        const keywordRelation = await KeywordRelation.findOne({
+            uuid,
+            userId,
+            isDeleted: false,
+        })
+            .select(["keyword", "blogList"])
+            .populate({ path: "keyword", select: ["name"] })
+            .populate({
+                path: "log",
+                options: {
+                    select: {
+                        _id: 0,
+                        action: 1,
+                        createdAt: 1,
+                    },
+                    sort: { _id: -1 },
+                },
+            })
+            .lean();
+
+        if (!keywordRelation) {
+            throw new Error("Not found keywordRelation");
+        }
+
+        ctx.body = {
+            uuid: keywordRelation.uuid,
+            name: keywordRelation.keyword.name,
+            blogList: keywordRelation.blogList,
+            logList: keywordRelation.log.map((log) => ({
+                action: log.action,
+                createdAt: log.createdAt,
+            })),
+        };
+        ctx.status = 200;
+        return;
+    } catch (error) {
+        console.log("Get keyword detail error:", error);
+        ctx.throw(400, error.message);
         return;
     }
 };
@@ -265,8 +320,7 @@ export const getScrapingDetailImage = async (ctx) => {
         return;
     } catch (error) {
         console.log("Get scraping detail image error:", error);
-        ctx.status = 500;
-        ctx.body = error;
+        ctx.throw(500, error.message);
         return;
     }
 };
