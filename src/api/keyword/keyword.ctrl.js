@@ -324,3 +324,64 @@ export const getScrapingDetailImage = async (ctx) => {
         return;
     }
 };
+
+/*
+DELETE /keywords/relations/:uuid
+*/
+export const deleteKeywordRelations = async (ctx) => {
+    ctx.callbackWaitsForEmptyEventLoop = false;
+    await db.connect();
+
+    const { uuid } = ctx.request.params;
+    const userId = ctx.state.auth.userId;
+    console.log("uuid:", uuid);
+
+    try {
+        await KeywordRelation.updateOne(
+            {
+                uuid,
+                userId,
+                isDeleted: false,
+            },
+            { isDeleted: true }
+        );
+
+        ctx.status = 200;
+        return;
+    } catch (error) {
+        console.log("Delete keyword relation error:", error);
+        ctx.throw(400, error.message);
+        return;
+    }
+};
+
+/*
+PATCH /keywords/relations/:uuid/blog-list
+*/
+export const updateBlogList = async (ctx) => {
+    ctx.callbackWaitsForEmptyEventLoop = false;
+    await db.connect();
+
+    const { uuid } = ctx.request.params;
+    const { blogList } = ctx.request.body;
+    const userId = ctx.state.auth.userId;
+    console.log("uuid:", uuid);
+
+    try {
+        await KeywordRelation.updateOne(
+            {
+                uuid,
+                userId,
+                isDeleted: false,
+            },
+            { blogList }
+        );
+
+        ctx.status = 200;
+        return;
+    } catch (error) {
+        console.log("Update blog list error:", error);
+        ctx.throw(400, error.message);
+        return;
+    }
+};
