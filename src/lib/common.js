@@ -1,3 +1,8 @@
+import dayjs from "dayjs";
+import "dayjs/locale/ko";
+
+dayjs.locale("ko");
+
 export const makeRandomId = (length) => {
     const result = [];
     const characters =
@@ -28,4 +33,25 @@ export const getCookieOptions = () => {
     }
 
     return cookieOptions;
+};
+
+export const getNextClosestDay = ({ days, alertDaysBefore, alertTime }) => {
+    const today = dayjs();
+    const todayDayOfWeek = today.day();
+
+    const sortedDays = [...days].sort((a, b) => a - b);
+
+    for (let day of sortedDays) {
+        const alertDay = (day - alertDaysBefore + 7) % 7;
+
+        if (
+            alertDay > todayDayOfWeek ||
+            (alertDay === todayDayOfWeek &&
+                today.hour() < dayjs(alertTime).hour())
+        ) {
+            return day;
+        }
+    }
+
+    return sortedDays[0];
 };
