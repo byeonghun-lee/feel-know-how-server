@@ -110,3 +110,42 @@ export const create = async (ctx) => {
         return;
     }
 };
+
+/*
+GET /weather-alarms
+*/
+export const getList = async (ctx) => {
+    ctx.callbackWaitsForEmptyEventLoop = false;
+    await db.connect();
+
+    const deviceId = ctx.request.header["device-id"];
+
+    const result = { totalCount: 0, list: [] };
+
+    try {
+        const weatherAlarmList = await WeatherAlarm.find({ deviceId })
+            .sort({ created: -1 })
+            .lean();
+
+        result.totalCount = weatherAlarmList.length;
+        result.list = weatherAlarmList.map((item) => ({
+            id: item._id,
+            type: item.type,
+            ...(item.dayOfTheWeek && { dayOfTheWeek: item.dayOfTheWeek }),
+            ...(item.specificDate && { specificDate: item.specificDate }),
+            alertDaysBefore: item.alertDaysBefore,
+            alertTime: dayjs(item.alertTime).format("HH:mm"),
+            isLiveUpdate: false,
+            location: item.location,
+            isActive: item.isActive,
+        }));
+
+        ctx.status = 200;
+        ctx.body = result;
+        return;
+    } catch (error) {
+        console.log("Get weather alarms list error:", error);
+        ctx.throw(500, error.message);
+        return;
+    }
+};
