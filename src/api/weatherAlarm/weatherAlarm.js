@@ -40,6 +40,14 @@ const weatherAlarmSchema = new Schema({
     alertTime: { type: String },
     nextAlertDate: { type: Date },
     location: { type: String, required: true },
+    locationCoordinates: {
+        x: { type: Number },
+        y: { type: Number },
+        location: {
+            type: { type: String, default: "Point" },
+            coordinates: { type: [Number] },
+        },
+    },
     createdAt: { type: Date, default: () => dayjs().toDate() },
 });
 
