@@ -149,3 +149,34 @@ export const getList = async (ctx) => {
         return;
     }
 };
+
+/*
+PATCH /weather-alarms/:id/toggle
+{
+    active: true
+}
+*/
+export const setAlarmStatus = async (ctx) => {
+    ctx.callbackWaitsForEmptyEventLoop = false;
+    await db.connect();
+
+    const deviceId = ctx.request.header["device-id"];
+    const { id } = ctx.request.params;
+    const { active } = ctx.request.body;
+
+    console.log(`ID: ${id}, ACTIVE: ${active}`);
+
+    try {
+        await WeatherAlarm.updateOne(
+            { deviceId, _id: id, isActive: !active },
+            { isActive: active }
+        );
+
+        ctx.status = 204;
+        return;
+    } catch (error) {
+        console.log("Set status of weather alarms error:", error);
+        ctx.throw(500, error.message);
+        return;
+    }
+};
