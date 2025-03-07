@@ -180,3 +180,112 @@ export const setAlarmStatus = async (ctx) => {
         return;
     }
 };
+
+/*
+PATCH /weather-alarms/:id
+{
+    deviceId: "",
+    dayOfTheWeek: [0],
+    alertDaysBefore: 1,
+    alertTime: "",
+    location: ""
+}
+*/
+export const update = async (ctx) => {
+    ctx.callbackWaitsForEmptyEventLoop = false;
+    await db.connect();
+
+    const schema = Joi.object({
+        deviceId: Joi.string().required(),
+        specificDate: Joi.string(),
+        dayOfTheWeek: Joi.array().items(
+            Joi.number().valid(0, 1, 2, 3, 4, 5, 6)
+        ),
+        alertDaysBefore: Joi.number().valid(1, 2, 3),
+        alertTime: Joi.string(),
+        location: Joi.string().required(),
+    });
+
+    const result = schema.validate(ctx.request.body);
+    if (result.error) {
+        console.log("error:", result.error);
+        ctx.throw(400, result.error);
+        return;
+    }
+
+    const {
+        deviceId,
+        dayOfTheWeek,
+        specificDate,
+        alertDaysBefore,
+        alertTime,
+        location,
+    } = ctx.request.body;
+    const alarmId = ctx.request.params.id;
+
+    try {
+        const newWeatherAlarm = {
+            alertDaysBefore,
+            alertTime,
+            location,
+        };
+        const alertHour = dayjs(alertTime).hour();
+        const alertMin = dayjs(alertTime).minute();
+
+        if (dayOfTheWeek?.length > 0) {
+            newWeatherAlarm.type = "weekly";
+            newWeatherAlarm.dayOfTheWeek = dayOfTheWeek;
+
+            const nextAlertDayOfWeek = getNextClosestDay({
+                days: dayOfTheWeek,
+                alertDaysBefore,
+                alertTime,
+            });
+
+            const diffDays =
+                nextAlertDayOfWeek - dayjs().day() <= 0
+                    ? nextAlertDayOfWeek - dayjs().day() + 7
+                    : nextAlertDayOfWeek - dayjs().day();
+
+            newWeatherAlarm.nextAlertDate = dayjs()
+                .add(diffDays - alertDaysBefore, "day")
+                .hour(alertHour)
+                .minute(alertMin)
+                .startOf("second")
+                .toDate();
+        } else {
+            const nextAlertDate = dayjs(specificDate)
+                .subtract(alertDaysBefore, "day")
+                .hour(alertHour)
+                .minute(alertMin)
+                .startOf("second");
+
+            if (dayjs().isAfter(nextAlertDate)) {
+                throw new Error("The set date is older than today.");
+            }
+
+            newWeatherAlarm.type = "specific";
+            newWeatherAlarm.specificDate = specificDate;
+            newWeatherAlarm.nextAlertDate = nextAlertDate.toDate();
+        }
+
+        console.log("updateWeatherAlarm:", newWeatherAlarm);
+
+        const weatherAlarm = await WeatherAlarm.findOneAndUpdate(
+            {
+                _id: alarmId,
+                deviceId,
+            },
+            newWeatherAlarm,
+            { new: true }
+        );
+
+        ctx.status = 200;
+        ctx.body = weatherAlarm;
+        return;
+    } catch (error) {
+        console.log("Update Weather alarm error:", error);
+        ctx.throw(500, error.message);
+        return;
+    }
+};
