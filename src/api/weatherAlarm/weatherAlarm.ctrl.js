@@ -123,7 +123,10 @@ export const getList = async (ctx) => {
     const result = { totalCount: 0, list: [] };
 
     try {
-        const weatherAlarmList = await WeatherAlarm.find({ deviceId })
+        const weatherAlarmList = await WeatherAlarm.find({
+            deviceId,
+            isDeleted: false,
+        })
             .sort({ created: -1 })
             .lean();
 
