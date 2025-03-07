@@ -292,3 +292,28 @@ export const update = async (ctx) => {
         return;
     }
 };
+
+/*
+DELETE /weather-alarms/:id
+*/
+export const remove = async (ctx) => {
+    ctx.callbackWaitsForEmptyEventLoop = false;
+    await db.connect();
+
+    const deviceId = ctx.request.header["device-id"];
+    const { id } = ctx.request.params;
+
+    try {
+        await WeatherAlarm.updateOne(
+            { _id: id, deviceId, isDeleted: false },
+            { isDeleted: true }
+        );
+
+        ctx.status = 204;
+        return;
+    } catch (error) {
+        console.log("Delete Weather alarm error:", error);
+        ctx.throw(500, error.message);
+        return;
+    }
+};
