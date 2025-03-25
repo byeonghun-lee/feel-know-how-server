@@ -10,6 +10,7 @@ import group from "api/group";
 import keyword from "api/keyword";
 import weatherAlarm from "api/weatherAlarm";
 import weatherForecast from "api/weatherForecast";
+import weatherUser from "api/weatherUser";
 
 const api = new Router();
 
@@ -24,5 +25,6 @@ api.use("/groups", group.routes());
 api.use("/keywords", keyword.routes());
 api.use("/weather-alarms", weatherAlarm.routes());
 api.use("/weather-forecasts", weatherForecast.routes());
+api.use("/weather-users", weatherUser.routes());
 
 export default api;
