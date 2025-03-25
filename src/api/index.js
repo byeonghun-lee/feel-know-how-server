@@ -9,6 +9,7 @@ import snsAccount from "api/snsAccount";
 import group from "api/group";
 import keyword from "api/keyword";
 import weatherAlarm from "api/weatherAlarm";
+import weatherForecast from "api/weatherForecast";
 
 const api = new Router();
 
@@ -22,5 +23,6 @@ api.use("/sns-accounts", snsAccount.routes());
 api.use("/groups", group.routes());
 api.use("/keywords", keyword.routes());
 api.use("/weather-alarms", weatherAlarm.routes());
+api.use("/weather-forecasts", weatherForecast.routes());
 
 export default api;
