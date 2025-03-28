@@ -1,6 +1,8 @@
 import dayjs from "dayjs";
 import "dayjs/locale/ko";
 
+dayjs.locale("ko");
+
 import db from "db";
 import WeatherForecast from "api/weatherForecast/weatherForecast";
 

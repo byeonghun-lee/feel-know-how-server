@@ -7,6 +7,8 @@ import WeatherAlarm from "api/weatherAlarm/weatherAlarm";
 
 import { getNextClosestDay } from "lib/common";
 
+dayjs.locale("ko");
+
 /*
 POST /weather-alarms
 {
