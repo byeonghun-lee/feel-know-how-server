@@ -33,7 +33,7 @@ export const create = async (ctx) => {
         dayOfTheWeek: Joi.array().items(
             Joi.number().valid(0, 1, 2, 3, 4, 5, 6)
         ),
-        alertDaysBefore: Joi.number().valid(1, 2, 3),
+        alertDaysBefore: Joi.number().valid(0, 1, 2),
         alertTime: Joi.string(),
         location: Joi.string().required(),
     });
@@ -76,7 +76,7 @@ export const create = async (ctx) => {
             });
 
             const diffDays =
-                nextAlertDayOfWeek - dayjs().day() <= 0
+                nextAlertDayOfWeek - dayjs().day() < 0
                     ? nextAlertDayOfWeek - dayjs().day() + 7
                     : nextAlertDayOfWeek - dayjs().day();
 
@@ -210,7 +210,7 @@ export const update = async (ctx) => {
         dayOfTheWeek: Joi.array().items(
             Joi.number().valid(0, 1, 2, 3, 4, 5, 6)
         ),
-        alertDaysBefore: Joi.number().valid(1, 2, 3),
+        alertDaysBefore: Joi.number().valid(0, 1, 2),
         alertTime: Joi.string(),
         location: Joi.string().required(),
     });
@@ -252,7 +252,7 @@ export const update = async (ctx) => {
             });
 
             const diffDays =
-                nextAlertDayOfWeek - dayjs().day() <= 0
+                nextAlertDayOfWeek - dayjs().day() < 0
                     ? nextAlertDayOfWeek - dayjs().day() + 7
                     : nextAlertDayOfWeek - dayjs().day();
 

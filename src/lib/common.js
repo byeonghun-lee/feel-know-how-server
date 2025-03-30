@@ -46,8 +46,7 @@ export const getNextClosestDay = ({ days, alertDaysBefore, alertTime }) => {
 
         if (
             alertDay > todayDayOfWeek ||
-            (alertDay === todayDayOfWeek &&
-                today.hour() < dayjs(alertTime).hour())
+            (alertDay === todayDayOfWeek && dayjs(alertTime).isAfter(today))
         ) {
             return day;
         }
