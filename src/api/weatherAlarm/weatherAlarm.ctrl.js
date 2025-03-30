@@ -1,6 +1,8 @@
 import Joi from "joi";
 import dayjs from "dayjs";
 import "dayjs/locale/ko";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 
 import db from "db";
 import WeatherAlarm from "api/weatherAlarm/weatherAlarm";
@@ -8,6 +10,8 @@ import WeatherAlarm from "api/weatherAlarm/weatherAlarm";
 import { getNextClosestDay } from "lib/common";
 
 dayjs.locale("ko");
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 /*
 POST /weather-alarms
@@ -139,7 +143,7 @@ export const getList = async (ctx) => {
             ...(item.dayOfTheWeek && { dayOfTheWeek: item.dayOfTheWeek }),
             ...(item.specificDate && { specificDate: item.specificDate }),
             alertDaysBefore: item.alertDaysBefore,
-            alertTime: dayjs(item.alertTime).format("HH:mm"),
+            alertTime: dayjs(item.alertTime).tz("Asia/Seoul").format("HH:mm"),
             isLiveUpdate: false,
             location: item.location,
             isActive: item.isActive,
