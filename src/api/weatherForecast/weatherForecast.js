@@ -25,7 +25,7 @@ const weatherForecastSchema = new Schema(
         },
         weather: {
             am: { type: String },
-            pm: { type: StringNumber },
+            pm: { type: String },
         },
         precipitationProbability: {
             am: { type: Number },
