@@ -147,6 +147,7 @@ export const getList = async (ctx) => {
             isLiveUpdate: false,
             location: item.location,
             isActive: item.isActive,
+            forecast24h: item.forecast24h,
         }));
 
         ctx.status = 200;
