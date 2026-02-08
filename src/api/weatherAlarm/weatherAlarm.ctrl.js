@@ -31,7 +31,7 @@ export const create = async (ctx) => {
         deviceId: Joi.string().required(),
         specificDate: Joi.string(),
         dayOfTheWeek: Joi.array().items(
-            Joi.number().valid(0, 1, 2, 3, 4, 5, 6)
+            Joi.number().valid(0, 1, 2, 3, 4, 5, 6),
         ),
         alertDaysBefore: Joi.number().valid(0, 1, 2),
         alertTime: Joi.string(),
@@ -148,6 +148,8 @@ export const getList = async (ctx) => {
             location: item.location,
             isActive: item.isActive,
             forecast24h: item.forecast24h,
+            dailyTemperature: item.dailyTemperature,
+            updatedAt: item.updatedAt,
         }));
 
         ctx.status = 200;
@@ -179,7 +181,7 @@ export const setAlarmStatus = async (ctx) => {
     try {
         await WeatherAlarm.updateOne(
             { deviceId, _id: id, isActive: !active },
-            { isActive: active }
+            { isActive: active },
         );
 
         ctx.status = 204;
@@ -209,7 +211,7 @@ export const update = async (ctx) => {
         deviceId: Joi.string().required(),
         specificDate: Joi.string(),
         dayOfTheWeek: Joi.array().items(
-            Joi.number().valid(0, 1, 2, 3, 4, 5, 6)
+            Joi.number().valid(0, 1, 2, 3, 4, 5, 6),
         ),
         alertDaysBefore: Joi.number().valid(0, 1, 2),
         alertTime: Joi.string(),
@@ -287,7 +289,7 @@ export const update = async (ctx) => {
                 deviceId,
             },
             newWeatherAlarm,
-            { new: true }
+            { new: true },
         );
 
         ctx.status = 200;
@@ -313,7 +315,7 @@ export const remove = async (ctx) => {
     try {
         await WeatherAlarm.updateOne(
             { _id: id, deviceId, isDeleted: false },
-            { isDeleted: true }
+            { isDeleted: true },
         );
 
         ctx.status = 204;
