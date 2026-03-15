@@ -64,6 +64,7 @@ export const register = async (ctx) => {
         ctx.body = auth.serialize();
 
         const token = auth.generateToken();
+        ctx.body.access_token = token;
         ctx.cookies.set("access_token", token, getCookieOptions());
 
         return;
@@ -115,6 +116,7 @@ export const login = async (ctx) => {
     ctx.body = auth.serialize();
 
     const token = auth.generateToken();
+    ctx.body.access_token = token;
     ctx.cookies.set("access_token", token, getCookieOptions());
 
     return;
