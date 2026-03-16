@@ -1,7 +1,9 @@
 import Joi from "joi";
 import dayjs from "dayjs";
 import mongoose from "mongoose";
+import axios from "axios";
 import db from "db";
+import config from "config";
 import Sentence from "api/sentence/sentence";
 
 /*
@@ -112,6 +114,56 @@ export const list = async (ctx) => {
 /*
 DELETE /sentences/:id
 */
+
+/*
+GET /sentences/books?title=검색어
+*/
+
+export const books = async (ctx) => {
+    ctx.callbackWaitsForEmptyEventLoop = false;
+
+    const schema = Joi.object({
+        title: Joi.string().required(),
+    });
+
+    const result = schema.validate(ctx.query);
+
+    if (result.error) {
+        ctx.status = 400;
+        ctx.body = result.error;
+        return;
+    }
+
+    const { title } = result.value;
+
+    try {
+        const response = await axios.get(
+            "https://www.googleapis.com/books/v1/volumes",
+            {
+                params: {
+                    q: `intitle:${title}`,
+                    key: config.GOOGLE_BOOK_API_KEY,
+                },
+            },
+        );
+
+        const items = response.data.items || [];
+
+        ctx.status = 200;
+        ctx.body = items.map((item) => {
+            const info = item.volumeInfo || {};
+            return {
+                title: info.title || "",
+                authors: info.authors || [],
+                thumbnail: info.imageLinks?.thumbnail || "",
+                publishedDate: info.publishedDate || "",
+            };
+        });
+    } catch (error) {
+        console.error("Books search error:", error);
+        ctx.throw(500, error);
+    }
+};
 
 export const remove = async (ctx) => {
     ctx.callbackWaitsForEmptyEventLoop = false;
