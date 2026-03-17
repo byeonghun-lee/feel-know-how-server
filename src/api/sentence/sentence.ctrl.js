@@ -112,10 +112,6 @@ export const list = async (ctx) => {
 };
 
 /*
-DELETE /sentences/:id
-*/
-
-/*
 GET /sentences/books?title=검색어
 */
 
@@ -165,6 +161,10 @@ export const books = async (ctx) => {
     }
 };
 
+/*
+DELETE /sentences/:id
+*/
+
 export const remove = async (ctx) => {
     ctx.callbackWaitsForEmptyEventLoop = false;
     await db.connect();
@@ -183,6 +183,56 @@ export const remove = async (ctx) => {
         ctx.status = 204;
     } catch (error) {
         console.error("Sentence remove error:", error);
+        ctx.throw(500, error);
+    }
+};
+
+/*
+PATCH /sentences/:id
+{
+    text: "수정된 문장",
+    author: "지은이",
+    book: "책 제목"
+}
+*/
+
+export const update = async (ctx) => {
+    ctx.callbackWaitsForEmptyEventLoop = false;
+    await db.connect();
+
+    const schema = Joi.object({
+        text: Joi.string(),
+        author: Joi.string().allow(""),
+        book: Joi.string().allow(""),
+    }).min(1);
+
+    const result = schema.validate(ctx.request.body);
+
+    if (result.error) {
+        ctx.status = 400;
+        ctx.body = result.error;
+        return;
+    }
+
+    const { userId } = ctx.state.auth;
+    const { id } = ctx.params;
+
+    try {
+        const sentence = await Sentence.findOneAndUpdate(
+            { _id: id, userId },
+            { $set: result.value },
+            { new: true },
+        );
+
+        if (!sentence) {
+            ctx.status = 404;
+            return;
+        }
+
+        ctx.status = 200;
+        ctx.body = sentence;
+    } catch (error) {
+        console.error("Sentence update error:", error);
         ctx.throw(500, error);
     }
 };
