@@ -9,11 +9,14 @@ plugins:
     - serverless-webpack
     # - serverless-offline
 
+build:
+  esbuild: false
+
 custom:
     webpack:
         webpackConfig: "webpack.config.js"
         includeModules: true
-        packager: "yarn"
+        packager: "npm"
 
 functions:
     app:

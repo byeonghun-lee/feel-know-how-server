@@ -20,6 +20,7 @@ export default {
                 useUnifiedTopology: true,
                 useCreateIndex: true,
                 useFindAndModify: false,
+                autoIndex: process.env.APP_ENV === "local" ? false : true,
             })
             .then(async (res) => {
                 console.log("=> Connect!");

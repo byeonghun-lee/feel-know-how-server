@@ -7,6 +7,7 @@ const sentence = new Router();
 sentence.post("/sync", checkedLogin, sentenceCtrl.sync);
 sentence.get("/books", checkedLogin, sentenceCtrl.books);
 sentence.get("/", checkedLogin, sentenceCtrl.list);
+sentence.patch("/:id", checkedLogin, sentenceCtrl.update);
 sentence.delete("/:id", checkedLogin, sentenceCtrl.remove);
 
 export default sentence;
